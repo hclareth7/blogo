@@ -267,23 +267,78 @@ Metrics to expose:
 
 ### Container Image
 
-- Multi-stage Dockerfile: build stage (Go compiler) → runtime stage (distroless/scratch)
+- Multi-stage Dockerfile: build stage (`golang:1.25-alpine`) → runtime stage (`scratch`)
+- Build flags: `CGO_ENABLED=0 -ldflags="-s -w" -trimpath`
 - Embed templates and static assets via `go:embed`
-- Target image size: under 30 MB compressed
+- Final image size: ~15 MB (uncompressed)
 - Expose port 8080
-- Run as non-root user
+- Default `USER 65534:65534` (overridden by OpenShift SCC)
+- `.dockerignore` excludes specs, deploy, .git, content from build context
+
+```bash
+podman build -t quay.io/hclareth/blogo:latest .
+podman push quay.io/hclareth/blogo:latest
+```
 
 ### Health Checks
 
 - `/healthz` — liveness: returns 200 if the process is running
 - `/readyz` — readiness: returns 200 if content is loaded and search index is ready
 
+### OpenShift Deployment (Kustomize)
+
+Manifests in `deploy/k8s/`, applied via `oc apply -k deploy/k8s/`.
+
+| Manifest           | Kind        | Description                                            |
+|--------------------|-------------|--------------------------------------------------------|
+| namespace.yaml     | Namespace   | `blogo` namespace                                      |
+| deployment.yaml    | Deployment  | 2 replicas, RollingUpdate, probes, security hardening  |
+| service.yaml       | Service     | ClusterIP on port 8080                                 |
+| certificate.yaml   | Certificate | cert-manager TLS for `blogo.hclareth.space`            |
+| route.yaml         | Route       | OpenShift Route, TLS edge, externalCertificate         |
+| kustomization.yaml | Kustomize   | Namespace, commonLabels, image tag management           |
+
+### Security Hardening (restricted-v2 SCC)
+
+Pod level:
+- `runAsNonRoot: true` (UID assigned by OpenShift from namespace range)
+- `seccompProfile: RuntimeDefault`
+- `automountServiceAccountToken: false`
+
+Container level:
+- `allowPrivilegeEscalation: false`
+- `readOnlyRootFilesystem: true`
+- `capabilities.drop: [ALL]`
+- `seccompProfile: RuntimeDefault`
+
+Writable volumes: `emptyDir` for `/content` and `/tmp`.
+
+### Image Pull Secret
+
+The container registry (quay.io) requires authentication. The pull secret is created manually (never versioned):
+
+```bash
+oc create secret docker-registry blogo-pull-secret \
+  --namespace=blogo \
+  --docker-server=quay.io \
+  --docker-username="<ROBOT_USERNAME>" \
+  --docker-password="<ROBOT_TOKEN>"
+```
+
+The Deployment references it via `spec.template.spec.imagePullSecrets`.
+
+### TLS
+
+- cert-manager `Certificate` resource requests a TLS certificate from ClusterIssuer `ca-cluster-issue-letsencrypt`
+- Secret `blogo-tls` is referenced by the OpenShift Route via `tls.externalCertificate`
+- Route enforces HTTPS with `insecureEdgeTerminationPolicy: Redirect`
+
 ### Kubernetes Compatibility
 
 - Liveness and readiness probes mapped to health endpoints
-- Graceful shutdown on SIGTERM with configurable drain timeout
+- Graceful shutdown on SIGTERM with configurable drain timeout (`terminationGracePeriodSeconds: 30`)
 - Configuration via environment variables (ConfigMap/Secret friendly)
-- Resource requests/limits documented in Helm chart values
+- Resource requests/limits defined in Deployment spec
 
 ## Security Considerations
 

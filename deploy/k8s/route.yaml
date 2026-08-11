@@ -1,0 +1,19 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: blogo
+  labels:
+    app.kubernetes.io/component: server
+spec:
+  host: blogo.hclareth.space
+  to:
+    kind: Service
+    name: blogo
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+    externalCertificate:
+      name: blogo-tls
