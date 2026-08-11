@@ -1,0 +1,8 @@
+bin/
+/blogo
+*.exe
+coverage.out
+coverage.html
+content/README.md
+node_modules/
+package-lock.json

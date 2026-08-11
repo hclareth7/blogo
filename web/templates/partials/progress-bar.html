@@ -1,0 +1,7 @@
+{{define "progress-bar"}}
+<div x-data="{ progress: 0 }"
+     @scroll.window="progress = Math.min(100, (window.scrollY / Math.max(1, document.body.scrollHeight - window.innerHeight)) * 100)"
+     class="fixed top-0 left-0 w-full h-[3px] z-50">
+    <div class="h-full bg-blue-500 transition-[width] duration-150" :style="'width:' + progress + '%'"></div>
+</div>
+{{end}}

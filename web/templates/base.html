@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} | BLOGO</title>
+    <meta name="description" content="{{.MetaDesc}}">
+    <meta property="og:title" content="{{.Title}} | BLOGO">
+    <meta property="og:description" content="{{.MetaDesc}}">
+    <meta property="og:type" content="article">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.replace('light', 'dark');
+        }
+    </script>
+</head>
+<body class="bg-white dark:bg-[#0a0f1a] text-slate-800 dark:text-slate-200 min-h-screen flex flex-col" x-data="{ sidebarOpen: false }">
+    {{template "progress-bar" .}}
+    {{template "header" .}}
+
+    <div class="flex flex-1">
+        {{template "sidebar" .}}
+
+        <main class="flex-1 min-w-0 flex flex-col md:ml-[14rem] md:mr-[14rem] pb-[60px]">
+            <div id="main-content" class="flex-1">
+                {{block "content" .}}{{end}}
+            </div>
+        </main>
+    </div>
+
+    {{template "footer" .}}
+
+    <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/alpine.min.js" defer></script>
+</body>
+</html>

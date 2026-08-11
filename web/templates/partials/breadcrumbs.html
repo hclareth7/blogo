@@ -1,0 +1,14 @@
+{{define "breadcrumbs"}}
+{{if .Breadcrumbs}}
+<nav class="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 mb-4" aria-label="Breadcrumb">
+    {{range $i, $crumb := .Breadcrumbs}}
+    {{if $i}}<span class="text-slate-300 dark:text-slate-600">&gt;</span>{{end}}
+    {{if $crumb.Last}}
+    <span class="text-slate-700 dark:text-slate-300">{{$crumb.Title}}</span>
+    {{else}}
+    <a href="{{$crumb.URL}}" class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors">{{$crumb.Title}}</a>
+    {{end}}
+    {{end}}
+</nav>
+{{end}}
+{{end}}
