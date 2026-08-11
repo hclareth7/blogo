@@ -6,7 +6,7 @@ BLOGO transforms the excellent System Design knowledge base created by Karan Pra
 
 Instead of reading a massive README from top to bottom, BLOGO allows engineers to explore concepts through structured navigation, deep links, full-text search, and an optimized reading experience.
 
-BLOGO is the first planet inside the **hclareth7.space** universe.
+BLOGO is the first planet inside the **hclareth.space** universe.
 
 ---
 
@@ -22,10 +22,10 @@ BLOGO exists for two reasons:
    - Specification Driven Development
    - Open Source architecture
 
-The long-term vision of **hclareth7.space** is to build a universe of engineering projects where every project is represented as a celestial body.
+The long-term vision of **hclareth.space** is to build a universe of engineering projects where every project is represented as a celestial body.
 
 ```
-hclareth7.space
+hclareth.space
 
 ├── 🌍 BLOGO
 ├── ⭐ Future Project
@@ -187,6 +187,9 @@ blogo/
 ├── content/
 │   └── README.md
 │
+├── deploy/
+│   └── k8s/              # OpenShift manifests (Kustomize)
+│
 ├── specs/
 │   ├── vision.md
 │   ├── architecture.md
@@ -194,6 +197,7 @@ blogo/
 │   ├── search.md
 │   └── ui.md
 │
+├── Dockerfile
 └── README.md
 ```
 
@@ -227,6 +231,12 @@ Release
 - Documentation rendering
 - Sidebar navigation
 
+### Phase 1.1
+
+- Dockerfile (multi-stage, scratch)
+- OpenShift manifests (Kustomize)
+- cert-manager TLS (blogo.hclareth.space)
+
 ### Phase 2
 
 - Search engine
@@ -250,18 +260,35 @@ Release
 ## Running Locally
 
 ```bash
-git clone https://github.com/G-HNL7/blogo.git
-
+git clone https://github.com/hclareth7/blogo.git
 cd blogo
-
 go run ./cmd/blogo
 ```
 
-Application will be available at:
+Application will be available at `http://localhost:8080`.
 
-```text
-http://localhost:8080
+## Deployment
+
+BLOGO deploys to OpenShift using a multi-stage scratch-based container image.
+
+```bash
+# Build image
+podman build -t quay.io/hclareth/blogo:latest .
+
+# Push to registry
+podman push quay.io/hclareth/blogo:latest
+
+# Deploy to OpenShift
+oc apply -k deploy/k8s/
 ```
+
+| Component     | Value                            |
+|---------------|----------------------------------|
+| Image         | quay.io/hclareth/blogo           |
+| Platform      | OpenShift (restricted-v2 SCC)    |
+| TLS           | cert-manager + ClusterIssuer     |
+| URL           | https://blogo.hclareth.space     |
+| Manifests     | Kustomize (`deploy/k8s/`)        |
 
 ---
 
@@ -290,7 +317,7 @@ before opening issues or pull requests.
 
 Hernando Clareth
 
-https://hclareth7.space
+https://hclareth.space
 
 ---
 

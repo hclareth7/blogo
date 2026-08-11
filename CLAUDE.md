@@ -44,7 +44,10 @@ blogo/
 │   └── assets/          # Source assets (pre-build)
 ├── content/             # Fetched Markdown source
 ├── specs/               # Feature specifications (SDD)
-└── deploy/              # Dockerfile, Helm, Terraform
+├── deploy/
+│   └── k8s/             # OpenShift/K8s manifests (Kustomize)
+├── Dockerfile           # Multi-stage scratch-based image
+└── .dockerignore        # Build context exclusions
 ```
 
 ## Build Commands
@@ -57,8 +60,21 @@ make lint             # Run golangci-lint
 make fmt              # Format code (gofumpt)
 make fetch-content    # Fetch content from source repo
 make css              # Compile Tailwind CSS
-make docker           # Build container image
+make docker           # Build container image (podman)
 make clean            # Remove build artifacts
+```
+
+## Container & Deployment
+
+```bash
+# Build image
+podman build -t quay.io/hclareth/blogo:latest .
+
+# Push to registry
+podman push quay.io/hclareth/blogo:latest
+
+# Deploy to OpenShift (Kustomize)
+oc apply -k deploy/k8s/
 ```
 
 ## Configuration
@@ -91,9 +107,34 @@ All configuration via environment variables (12-factor):
 - BLOGO code license: Apache 2.0
 - Always preserve attribution to Karan Pratap Singh
 
+## Deployment
+
+| Component        | Value                                |
+|------------------|--------------------------------------|
+| Container image  | quay.io/hclareth/blogo               |
+| Container runtime| Podman                               |
+| Base image       | scratch (multi-stage, CGO_ENABLED=0) |
+| Platform         | OpenShift (restricted-v2 SCC)        |
+| TLS              | cert-manager (ClusterIssuer)         |
+| URL              | https://blogo.hclareth.space         |
+| Manifests        | deploy/k8s/ (Kustomize)             |
+
+### Pull secret
+
+The image registry requires a pull secret (not versioned in git):
+
+```bash
+oc create secret docker-registry blogo-pull-secret \
+  --namespace=blogo \
+  --docker-server=quay.io \
+  --docker-username="<ROBOT_USERNAME>" \
+  --docker-password="<ROBOT_TOKEN>"
+```
+
 ## Roadmap
 
 - Phase 1: Markdown parser, document rendering, sidebar navigation
+- Phase 1.1: Dockerfile, OpenShift manifests (Kustomize), cert-manager TLS
 - Phase 2: Search engine, deep linking, SEO routes
 - Phase 3: Reading progress, keyboard navigation, enhanced UX
 - Phase 4: Advanced indexing, performance optimization, content sync

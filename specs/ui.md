@@ -60,7 +60,7 @@ The design follows a two-column layout (sidebar + content) with no separate TOC 
 │    CAP Theorem  │                                            │
 ├─────────────────┴────────────────────────────────────────────┤
 │ 🪐 BLOGO  Planet ID: BLG-001  │ Open-source...  │ © K.P.S   │
-│    hclareth7.space ↗           │ Made with ❤ Go  │ CC BY-NC  │
+│    hclareth.space ↗           │ Made with ❤ Go  │ CC BY-NC  │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -413,7 +413,7 @@ Displayed at the bottom of the content area, before the footer.
 
 ## Footer
 
-Three-column footer with the hclareth7.space universe theme:
+Three-column footer with the hclareth.space universe theme:
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -421,7 +421,7 @@ Three-column footer with the hclareth7.space universe theme:
 │ You are exploring          │ Open-source        │ Source      │
 │ BLOGO                      │ documentation      │ content ©   │
 │ Planet ID: BLG-001         │ platform.          │ Karan Pratap│
-│ hclareth7.space ↗          │ Made with ❤ and Go.│ Singh       │
+│ hclareth.space ↗          │ Made with ❤ and Go.│ Singh       │
 │                            │                    │ Licensed    │
 │                            │                    │ under CC    │
 │                            │                    │ BY-NC-ND 4.0│
@@ -435,7 +435,7 @@ Three-column footer with the hclareth7.space universe theme:
 - "You are exploring" (muted, small)
 - **BLOGO** (bold, larger)
 - "Planet ID: BLG-001" (muted, monospace)
-- "hclareth7.space" with external link icon -- links to hclareth7.space
+- "hclareth.space" with external link icon -- links to hclareth.space
 
 ### Center Column — Description
 

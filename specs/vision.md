@@ -90,10 +90,10 @@ BLOGO's code (the platform) is licensed separately under Apache 2.0.
 
 ## Universe Context
 
-BLOGO is the first project ("planet") in the **hclareth7.space** universe -- a collection of engineering projects where each project is represented as a celestial body.
+BLOGO is the first project ("planet") in the **hclareth.space** universe -- a collection of engineering projects where each project is represented as a celestial body.
 
 ```
-hclareth7.space
+hclareth.space
 ├── BLOGO        (this project)
 ├── Future projects...
 ```
