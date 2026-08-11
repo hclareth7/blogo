@@ -1,0 +1,45 @@
+{{define "prev-next"}}
+{{if .PrevNext}}
+<div class="flex flex-col sm:flex-row gap-4 mt-12 pt-8 border-t border-slate-200 dark:border-[#141c2e]">
+    {{if .PrevNext.Prev}}
+    <a href="{{.PrevNext.Prev.URL}}"
+       hx-get="{{.PrevNext.Prev.URL}}" hx-target="#main-content" hx-push-url="true" hx-swap="innerHTML scroll:window:top"
+       class="flex-1 group flex items-center gap-3 p-4 rounded-lg border border-slate-200 dark:border-[#141c2e] hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
+        <svg class="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        <div>
+            <div class="text-xs text-slate-500 dark:text-slate-400">Previous</div>
+            <div class="text-sm font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{.PrevNext.Prev.Title}}</div>
+        </div>
+    </a>
+    {{else}}
+    <div class="flex-1 flex items-center gap-3 p-4 rounded-lg border border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        <div>
+            <div class="text-xs">Previous</div>
+            <div class="text-sm">No previous</div>
+        </div>
+    </div>
+    {{end}}
+
+    {{if .PrevNext.Next}}
+    <a href="{{.PrevNext.Next.URL}}"
+       hx-get="{{.PrevNext.Next.URL}}" hx-target="#main-content" hx-push-url="true" hx-swap="innerHTML scroll:window:top"
+       class="flex-1 group flex items-center justify-end gap-3 p-4 rounded-lg border border-slate-200 dark:border-[#141c2e] hover:border-blue-300 dark:hover:border-blue-600 transition-colors text-right">
+        <div>
+            <div class="text-xs text-slate-500 dark:text-slate-400">Next</div>
+            <div class="text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">{{.PrevNext.Next.Title}}</div>
+        </div>
+        <svg class="w-5 h-5 text-blue-500 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    </a>
+    {{else}}
+    <div class="flex-1 flex items-center justify-end gap-3 p-4 rounded-lg border border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-600 text-right">
+        <div>
+            <div class="text-xs">Next</div>
+            <div class="text-sm">No next</div>
+        </div>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    </div>
+    {{end}}
+</div>
+{{end}}
+{{end}}

@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+    }
+
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: transparent transparent;
+    }
+    *:hover {
+        scrollbar-color: rgb(148 163 184 / 0.3) transparent;
+    }
+    .dark *:hover {
+        scrollbar-color: rgb(100 116 139 / 0.3) transparent;
+    }
+
+    *::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    *::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    *::-webkit-scrollbar-thumb {
+        background-color: transparent;
+        border-radius: 9999px;
+    }
+    *:hover::-webkit-scrollbar-thumb {
+        background-color: rgb(148 163 184 / 0.3);
+    }
+    *:hover::-webkit-scrollbar-thumb:hover {
+        background-color: rgb(148 163 184 / 0.5);
+    }
+    .dark *:hover::-webkit-scrollbar-thumb {
+        background-color: rgb(100 116 139 / 0.3);
+    }
+    .dark *:hover::-webkit-scrollbar-thumb:hover {
+        background-color: rgb(100 116 139 / 0.5);
+    }
+}
+
+@layer components {
+    .callout {
+        @apply border-l-4 rounded-r-lg p-4 my-4;
+    }
+    .callout-note {
+        @apply border-blue-500 bg-blue-50 dark:bg-blue-900/20;
+    }
+    .callout-warning {
+        @apply border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20;
+    }
+    .callout-tip {
+        @apply border-green-500 bg-green-50 dark:bg-green-900/20;
+    }
+    .callout-title {
+        @apply font-semibold mb-1;
+    }
+    .callout-note .callout-title {
+        @apply text-blue-700 dark:text-blue-300;
+    }
+    .callout-warning .callout-title {
+        @apply text-yellow-700 dark:text-yellow-300;
+    }
+    .callout-tip .callout-title {
+        @apply text-green-700 dark:text-green-300;
+    }
+}
+
+/* Chroma syntax highlighting - light */
+.chroma { background-color: #282a36; color: #f8f8f2; }
+.chroma .ln { color: #6272a4; }
+.chroma .k { color: #ff79c6; }
+.chroma .kd { color: #8be9fd; font-style: italic; }
+.chroma .kn { color: #ff79c6; }
+.chroma .kp { color: #ff79c6; }
+.chroma .kr { color: #ff79c6; }
+.chroma .kt { color: #8be9fd; }
+.chroma .na { color: #50fa7b; }
+.chroma .nb { color: #8be9fd; font-style: italic; }
+.chroma .nc { color: #8be9fd; }
+.chroma .no { color: #bd93f9; }
+.chroma .nd { color: #50fa7b; }
+.chroma .ne { color: #8be9fd; }
+.chroma .nf { color: #50fa7b; }
+.chroma .nt { color: #ff79c6; }
+.chroma .nv { color: #8be9fd; font-style: italic; }
+.chroma .s { color: #f1fa8c; }
+.chroma .sa { color: #f1fa8c; }
+.chroma .sb { color: #f1fa8c; }
+.chroma .sc { color: #f1fa8c; }
+.chroma .dl { color: #f1fa8c; }
+.chroma .sd { color: #f1fa8c; }
+.chroma .s2 { color: #f1fa8c; }
+.chroma .se { color: #f1fa8c; }
+.chroma .sh { color: #f1fa8c; }
+.chroma .si { color: #f1fa8c; }
+.chroma .sx { color: #f1fa8c; }
+.chroma .sr { color: #f1fa8c; }
+.chroma .s1 { color: #f1fa8c; }
+.chroma .ss { color: #f1fa8c; }
+.chroma .m { color: #bd93f9; }
+.chroma .mb { color: #bd93f9; }
+.chroma .mf { color: #bd93f9; }
+.chroma .mh { color: #bd93f9; }
+.chroma .mi { color: #bd93f9; }
+.chroma .il { color: #bd93f9; }
+.chroma .mo { color: #bd93f9; }
+.chroma .o { color: #ff79c6; }
+.chroma .ow { color: #ff79c6; }
+.chroma .c { color: #6272a4; }
+.chroma .ch { color: #6272a4; }
+.chroma .cm { color: #6272a4; }
+.chroma .c1 { color: #6272a4; }
+.chroma .cs { color: #6272a4; }
+.chroma .cp { color: #ff79c6; }
+.chroma .cpf { color: #6272a4; }

@@ -1,0 +1,50 @@
+{{define "sidebar-oob"}}
+{{$currentPath := .CurrentPath}}
+<nav id="sidebar-nav" hx-swap-oob="innerHTML" class="flex-1 overflow-y-auto p-3 space-y-1" aria-label="Documentation navigation">
+    {{if .NavTree}}
+    {{range .NavTree.Ungrouped}}
+    <a href="{{.URL}}"
+       hx-get="{{.URL}}" hx-target="#main-content" hx-push-url="true" hx-swap="innerHTML scroll:window:top"
+       @click="sidebarOpen = false"
+       class="flex items-center justify-between px-3 py-1.5 text-sm rounded-lg transition-colors
+              {{if isActive $currentPath .URL}}bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium{{else}}text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50{{end}}">
+        <span>{{.Title}}</span>
+        {{if isActive $currentPath .URL}}<span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>{{end}}
+    </a>
+    {{end}}
+
+    {{range .NavTree.Groups}}
+    <div x-data="{ open: true }" class="pt-2">
+        <button @click="open = !open"
+                class="flex items-center justify-between w-full px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 rounded-lg transition-colors">
+            <span class="flex items-center gap-2">
+                {{if eq .Icon "book-open"}}<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                {{else if eq .Icon "book"}}<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                {{else if eq .Icon "database"}}<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                {{else if eq .Icon "layers"}}<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                {{else if eq .Icon "server"}}<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+                {{else if eq .Icon "briefcase"}}<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                {{else if eq .Icon "bookmark"}}<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                {{else}}<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                {{end}}
+                {{.Name}}
+            </span>
+            <svg class="w-4 h-4 text-slate-400 transition-transform" :class="open ? 'rotate-0' : '-rotate-90'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div x-show="open" x-collapse class="ml-2 mt-0.5 space-y-0.5">
+            {{range .Items}}
+            <a href="{{.URL}}"
+               hx-get="{{.URL}}" hx-target="#main-content" hx-push-url="true" hx-swap="innerHTML scroll:window:top"
+               @click="sidebarOpen = false"
+               class="flex items-center justify-between pl-7 pr-3 py-1.5 text-sm rounded-lg transition-colors
+                      {{if isActive $currentPath .URL}}bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium{{else}}text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50{{end}}">
+                <span class="truncate">{{.Title}}</span>
+                {{if isActive $currentPath .URL}}<span class="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0"></span>{{end}}
+            </a>
+            {{end}}
+        </div>
+    </div>
+    {{end}}
+    {{end}}
+</nav>
+{{end}}

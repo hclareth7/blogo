@@ -1,0 +1,33 @@
+{{template "base.html" .}}
+
+{{define "content"}}
+<article class="max-w-5xl px-8 py-8 mr-8">
+    {{template "breadcrumbs" .}}
+
+    {{if .Section}}
+    <h1 class="text-3xl font-bold mb-4">{{.Section.Title}}</h1>
+
+    {{template "metadata" .}}
+
+    <div class="prose prose-slate dark:prose-invert max-w-none
+                prose-headings:scroll-mt-20
+                prose-h2:text-xl prose-h2:font-bold prose-h2:mt-10 prose-h2:mb-4
+                prose-h3:text-lg prose-h3:font-semibold prose-h3:mt-8 prose-h3:mb-3
+                prose-a:text-blue-600 dark:prose-a:text-blue-400
+                prose-code:text-sm prose-code:bg-slate-100 dark:prose-code:bg-slate-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
+                prose-pre:bg-slate-900 dark:prose-pre:bg-slate-950 prose-pre:rounded-lg
+                prose-img:rounded-lg
+                prose-table:text-sm
+                prose-th:bg-slate-100 dark:prose-th:bg-slate-800">
+        {{.Section.Content | safeHTML}}
+
+        {{range .Section.Children}}
+        <h2 id="{{.ID}}">{{.Title}}</h2>
+        {{.Content | safeHTML}}
+        {{end}}
+    </div>
+    {{end}}
+
+    {{template "prev-next" .}}
+</article>
+{{end}}
