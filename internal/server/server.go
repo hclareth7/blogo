@@ -115,11 +115,12 @@ func (s *Server) repoList(activeSlug string) []renderer.RepoMeta {
 	for _, slug := range s.repoOrder {
 		rs := s.repos[slug]
 		list = append(list, renderer.RepoMeta{
-			Name:   rs.Meta.Name,
-			Slug:   rs.Meta.Slug,
-			Author: rs.Meta.Author,
-			Type:   rs.Meta.Type,
-			Active: slug == activeSlug,
+			Name:      rs.Meta.Name,
+			Slug:      rs.Meta.Slug,
+			Author:    rs.Meta.Author,
+			Type:      rs.Meta.Type,
+			Active:    slug == activeSlug,
+			AvatarURL: rs.Meta.AvatarURL,
 		})
 	}
 	return list

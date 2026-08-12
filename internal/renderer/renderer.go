@@ -12,11 +12,12 @@ import (
 )
 
 type RepoMeta struct {
-	Name   string
-	Slug   string
-	Author string
-	Type   string
-	Active bool
+	Name      string
+	Slug      string
+	Author    string
+	Type      string
+	Active    bool
+	AvatarURL string
 }
 
 type PageData struct {
@@ -27,6 +28,7 @@ type PageData struct {
 	PrevNext    *navigation.PrevNext
 	ReadingTime int
 	Author      string
+	AvatarURL   string
 	OriginalURL string
 	MetaDesc    string
 	CurrentPath string

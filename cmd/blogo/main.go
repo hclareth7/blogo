@@ -61,10 +61,11 @@ func main() {
 			NavTree: navTree,
 			NavBld:  navBuilder,
 			Meta: renderer.RepoMeta{
-				Name:   repoCfg.Name,
-				Slug:   slug,
-				Author: repoCfg.Author,
-				Type:   repoCfg.Type,
+				Name:      repoCfg.Name,
+				Slug:      slug,
+				Author:    repoCfg.Author,
+				Type:      repoCfg.Type,
+				AvatarURL: content.OwnerAvatarURL(repoCfg.URL),
 			},
 		}
 		repoOrder = append(repoOrder, slug)

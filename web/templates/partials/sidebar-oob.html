@@ -10,7 +10,12 @@
          @keydown.escape.window="open = false">
         <p class="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5">Current source</p>
         <button @click="open = !open" class="w-full flex items-center gap-2.5 group">
+            {{if .AvatarURL}}
+            <img src="{{.AvatarURL}}" alt="" class="w-7 h-7 rounded-md flex-shrink-0 object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <span class="w-7 h-7 rounded-md bg-blue-600 items-center justify-center text-white text-xs font-bold flex-shrink-0 hidden">{{initial .DocTitle}}</span>
+            {{else}}
             <span class="w-7 h-7 rounded-md bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{{initial .DocTitle}}</span>
+            {{end}}
             <div class="text-left min-w-0 flex-1">
                 <h2 class="font-semibold text-sm truncate">{{.DocTitle}}</h2>
                 <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">by {{.Author}}</p>
@@ -33,7 +38,12 @@
                    @click="open = false; sidebarOpen = false"
                    class="flex items-center gap-2.5 px-3 py-2 text-sm transition-colors
                           {{if .Active}}bg-blue-500/10{{else}}hover:bg-slate-100 dark:hover:bg-slate-700/50{{end}}">
+                    {{if .AvatarURL}}
+                    <img src="{{.AvatarURL}}" alt="" class="w-7 h-7 rounded-md flex-shrink-0 object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <span class="w-7 h-7 rounded-md {{if .Active}}bg-blue-600{{else}}bg-slate-500 dark:bg-slate-600{{end}} items-center justify-center text-white text-xs font-bold flex-shrink-0 hidden">{{initial .Name}}</span>
+                    {{else}}
                     <span class="w-7 h-7 rounded-md {{if .Active}}bg-blue-600{{else}}bg-slate-500 dark:bg-slate-600{{end}} flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{{initial .Name}}</span>
+                    {{end}}
                     <div class="min-w-0 flex-1">
                         <span class="block truncate {{if .Active}}text-blue-600 dark:text-blue-400 font-medium{{else}}text-slate-700 dark:text-slate-300{{end}}">{{.Name}}</span>
                         <span class="block text-[11px] text-slate-500 dark:text-slate-400 truncate">by {{.Author}}</span>
