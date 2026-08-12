@@ -32,6 +32,7 @@ Every feature starts with a spec in `specs/` before implementation.
 blogo/
 ├── cmd/blogo/           # Application entrypoint
 ├── internal/
+│   ├── config/          # Config file loading (blogo.yaml)
 │   ├── parser/          # Markdown parsing (Goldmark)
 │   ├── search/          # Full-text search (Bleve)
 │   ├── navigation/      # Sidebar, TOC, prev/next
@@ -79,10 +80,42 @@ oc apply -k deploy/k8s/
 
 ## Configuration
 
-All configuration via environment variables (12-factor):
+Primary configuration via `blogo.yaml` (multi-repo). Fallback to environment variables for single-repo mode.
+
+### Config file (`blogo.yaml`)
+
+```yaml
+port: 8080
+log_level: info
+log_format: json
+fetch_on_start: true
+
+repos:
+  - name: "System Design"
+    url: "https://github.com/karanpratapsingh/system-design"
+    type: single-md
+    branch: main
+    author: "Karan Pratap Singh"
+
+  - name: "System Design Notes"
+    url: "https://github.com/liquidslr/system-design-notes"
+    type: multi-folder
+    branch: main
+    author: "liquidslr"
+```
+
+### Repo types
+
+| Type           | Description                                          |
+|----------------|------------------------------------------------------|
+| `single-md`    | Single README.md with all content (H1 per section)   |
+| `multi-folder` | Numbered folders, each with its own README.md        |
+
+### Environment variables (legacy fallback)
 
 | Variable              | Default         | Description                     |
 |-----------------------|-----------------|---------------------------------|
+| BLOGO_CONFIG          | ./blogo.yaml    | Path to config file             |
 | BLOGO_PORT            | 8080            | HTTP server port                |
 | BLOGO_CONTENT_URL     | (GitHub raw)    | Markdown source URL             |
 | BLOGO_CONTENT_DIR     | ./content       | Local content directory         |
@@ -135,6 +168,7 @@ oc create secret docker-registry blogo-pull-secret \
 
 - Phase 1: Markdown parser, document rendering, sidebar navigation
 - Phase 1.1: Dockerfile, OpenShift manifests (Kustomize), cert-manager TLS
+- Phase 1.2: Multi-repo support (single-md + multi-folder), config file, repo selector UI
 - Phase 2: Search engine, deep linking, SEO routes
 - Phase 3: Reading progress, keyboard navigation, enhanced UX
 - Phase 4: Advanced indexing, performance optimization, content sync

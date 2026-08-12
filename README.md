@@ -39,6 +39,8 @@ hclareth.space
 
 ### Documentation Experience
 
+- Multi-repo support with searchable repo selector
+- Repository types: `single-md` (one big README) and `multi-folder` (folder-per-topic)
 - Clean reading experience
 - Responsive layout
 - Light and Dark themes
@@ -173,6 +175,7 @@ blogo/
 │   └── blogo/
 │
 ├── internal/
+│   ├── config/
 │   ├── parser/
 │   ├── search/
 │   ├── navigation/
@@ -237,6 +240,13 @@ Release
 - OpenShift manifests (Kustomize)
 - cert-manager TLS (blogo.hclareth.space)
 
+### Phase 1.2
+
+- Multi-repo support (`single-md` + `multi-folder` types)
+- YAML config file (`blogo.yaml`) for repo list
+- Searchable repo selector in sidebar
+- Per-repo URL routing (`/{repo-slug}/{section}`)
+
 ### Phase 2
 
 - Search engine
@@ -258,6 +268,36 @@ Release
 ---
 
 ## Running Locally
+
+### With config file (multi-repo)
+
+```bash
+git clone https://github.com/hclareth7/blogo.git
+cd blogo
+
+# Create blogo.yaml
+cat > blogo.yaml <<EOF
+port: 8080
+fetch_on_start: true
+
+repos:
+  - name: "System Design"
+    url: "https://github.com/karanpratapsingh/system-design"
+    type: single-md
+    branch: main
+    author: "Karan Pratap Singh"
+
+  - name: "System Design Notes"
+    url: "https://github.com/liquidslr/system-design-notes"
+    type: multi-folder
+    branch: main
+    author: "liquidslr"
+EOF
+
+go run ./cmd/blogo
+```
+
+### With environment variables (single repo)
 
 ```bash
 git clone https://github.com/hclareth7/blogo.git
