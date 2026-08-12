@@ -2,6 +2,8 @@ package parser
 
 type Document struct {
 	Title    string
+	RepoSlug string
+	Author   string
 	Sections []*Section
 }
 

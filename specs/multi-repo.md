@@ -115,7 +115,7 @@ repos:
 
 ### Backward compatibility
 
-Environment variables (`BLOGO_PORT`, `BLOGO_LOG_LEVEL`, etc.) still work for server-level config. If `blogo.yaml` is absent, BLOGO falls back to the current behavior (single repo via `BLOGO_CONTENT_URL` env var, type `single-md`).
+Environment variables (`BLOGO_PORT`, `BLOGO_LOG_LEVEL`, etc.) still work for server-level config. If `blogo.yaml` is absent, BLOGO falls back to legacy behavior (single repo via `BLOGO_CONTENT_URL` env var, type `single-md`).
 
 ### Config resolution order
 
@@ -323,7 +323,7 @@ go run ./cmd/blogo
 
 Phase 1.2 is backward compatible:
 - If `blogo.yaml` exists → use multi-repo config
-- If no config file → fall back to env vars (single-repo `single-md` mode, current behavior)
+- If no config file → fall back to env vars (single-repo `single-md` mode, legacy behavior)
 - All existing URLs (`/{section}`) work when only one repo is configured
 
 ## Out of Scope

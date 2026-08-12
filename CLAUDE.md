@@ -1,7 +1,8 @@
 # BLOGO
 
-A modern, interactive System Design documentation platform built with Go.
-Transforms the System Design knowledge base by Karan Pratap Singh into a searchable, navigable learning experience.
+A multi-repo documentation platform built with Go.
+Transforms Markdown repositories into searchable, navigable learning experiences.
+Supports multiple repo types: `single-md` (one big README) and `multi-folder` (folder-per-topic).
 
 ## Development Philosophy
 
@@ -47,6 +48,7 @@ blogo/
 ├── specs/               # Feature specifications (SDD)
 ├── deploy/
 │   └── k8s/             # OpenShift/K8s manifests (Kustomize)
+├── blogo.yaml           # Multi-repo configuration
 ├── Dockerfile           # Multi-stage scratch-based image
 └── .dockerignore        # Build context exclusions
 ```
@@ -117,7 +119,7 @@ repos:
 |-----------------------|-----------------|---------------------------------|
 | BLOGO_CONFIG          | ./blogo.yaml    | Path to config file             |
 | BLOGO_PORT            | 8080            | HTTP server port                |
-| BLOGO_CONTENT_URL     | (GitHub raw)    | Markdown source URL             |
+| BLOGO_CONTENT_URL     | (GitHub raw)    | Markdown source URL (legacy)    |
 | BLOGO_CONTENT_DIR     | ./content       | Local content directory         |
 | BLOGO_FETCH_ON_START  | true            | Fetch content on startup        |
 | BLOGO_LOG_LEVEL       | info            | Log level                       |
@@ -133,12 +135,16 @@ repos:
 - Tests run with `t.Parallel()` by default
 - No global mutable state; pass dependencies via constructor injection
 
-## Content Source
+## Content Sources
 
-- Repository: https://github.com/karanpratapsingh/system-design
-- License: CC BY-NC-ND 4.0 (content only)
+Content repositories are configured in `blogo.yaml`. Default sources:
+
+- https://github.com/karanpratapsingh/system-design (single-md, Karan Pratap Singh)
+- https://github.com/liquidslr/system-design-notes (multi-folder, liquidslr)
+- Content license: CC BY-NC-ND 4.0
 - BLOGO code license: Apache 2.0
-- Always preserve attribution to Karan Pratap Singh
+- Always preserve attribution to original authors
+- Standard repo templates: `specs/repo-standards.md`
 
 ## Deployment
 
@@ -169,6 +175,7 @@ oc create secret docker-registry blogo-pull-secret \
 - Phase 1: Markdown parser, document rendering, sidebar navigation
 - Phase 1.1: Dockerfile, OpenShift manifests (Kustomize), cert-manager TLS
 - Phase 1.2: Multi-repo support (single-md + multi-folder), config file, repo selector UI
+- Phase 1.2.1: Multi-folder ordering, root README, HTML image rewriting, dynamic footer, nav tooltips, repo standards
 - Phase 2: Search engine, deep linking, SEO routes
 - Phase 3: Reading progress, keyboard navigation, enhanced UX
 - Phase 4: Advanced indexing, performance optimization, content sync

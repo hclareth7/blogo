@@ -84,8 +84,9 @@ var defaultGroups = []groupDef{
 }
 
 type Builder struct {
-	groups []groupDef
-	logger *slog.Logger
+	groups    []groupDef
+	logger    *slog.Logger
+	urlPrefix string
 }
 
 func NewBuilder(logger *slog.Logger) *Builder {
@@ -95,7 +96,30 @@ func NewBuilder(logger *slog.Logger) *Builder {
 	}
 }
 
+func NewBuilderWithPrefix(logger *slog.Logger, urlPrefix string) *Builder {
+	return &Builder{
+		groups:    nil,
+		logger:    logger,
+		urlPrefix: urlPrefix,
+	}
+}
+
+func NewBuilderForRepo(logger *slog.Logger, repoSlug string, useGroups bool) *Builder {
+	b := &Builder{
+		logger:    logger,
+		urlPrefix: "/" + repoSlug,
+	}
+	if useGroups {
+		b.groups = defaultGroups
+	}
+	return b
+}
+
 func (b *Builder) BuildTree(sections []*parser.Section) *NavTree {
+	if len(b.groups) == 0 {
+		return b.buildFlatTree(sections)
+	}
+
 	sectionMap := make(map[string]*parser.Section)
 	for _, s := range sections {
 		sectionMap[s.ID] = s
@@ -116,7 +140,7 @@ func (b *Builder) BuildTree(sections []*parser.Section) *NavTree {
 				continue
 			}
 
-			item := sectionToNavItem(s)
+			item := b.sectionToNavItem(s)
 			group.Items = append(group.Items, item)
 			assigned[slug] = true
 		}
@@ -128,10 +152,18 @@ func (b *Builder) BuildTree(sections []*parser.Section) *NavTree {
 
 	for _, s := range sections {
 		if !assigned[s.ID] {
-			tree.Ungrouped = append(tree.Ungrouped, sectionToNavItem(s))
+			tree.Ungrouped = append(tree.Ungrouped, b.sectionToNavItem(s))
 		}
 	}
 
+	return tree
+}
+
+func (b *Builder) buildFlatTree(sections []*parser.Section) *NavTree {
+	tree := &NavTree{}
+	for _, s := range sections {
+		tree.Ungrouped = append(tree.Ungrouped, b.sectionToNavItem(s))
+	}
 	return tree
 }
 
@@ -147,14 +179,14 @@ func (b *Builder) BuildPrevNext(sections []*parser.Section, currentID string) *P
 			pn.Prev = &NavItem{
 				ID:    flat[i-1].ID,
 				Title: flat[i-1].Title,
-				URL:   sectionURL(flat[i-1]),
+				URL:   b.sectionURL(flat[i-1]),
 			}
 		}
 		if i < len(flat)-1 {
 			pn.Next = &NavItem{
 				ID:    flat[i+1].ID,
 				Title: flat[i+1].Title,
-				URL:   sectionURL(flat[i+1]),
+				URL:   b.sectionURL(flat[i+1]),
 			}
 		}
 		break
@@ -173,7 +205,7 @@ func (b *Builder) BuildBreadcrumbs(sectionID, parentID string, sections []*parse
 			if s.ID == parentID {
 				crumbs = append(crumbs, Breadcrumb{
 					Title: s.Title,
-					URL:   "/" + s.ID,
+					URL:   b.urlPrefix + "/" + s.ID,
 				})
 				break
 			}
@@ -184,7 +216,7 @@ func (b *Builder) BuildBreadcrumbs(sectionID, parentID string, sections []*parse
 		if s.ID == sectionID {
 			crumbs = append(crumbs, Breadcrumb{
 				Title: s.Title,
-				URL:   sectionURL(s),
+				URL:   b.sectionURL(s),
 				Last:  true,
 			})
 			break
@@ -194,7 +226,7 @@ func (b *Builder) BuildBreadcrumbs(sectionID, parentID string, sections []*parse
 				if parentID == "" {
 					crumbs = append(crumbs, Breadcrumb{
 						Title: s.Title,
-						URL:   "/" + s.ID,
+						URL:   b.urlPrefix + "/" + s.ID,
 					})
 				}
 				crumbs = append(crumbs, Breadcrumb{
@@ -217,11 +249,11 @@ func (b *Builder) FlatSections(sections []*parser.Section) []*parser.Section {
 	return flattenSections(sections)
 }
 
-func sectionToNavItem(s *parser.Section) *NavItem {
+func (b *Builder) sectionToNavItem(s *parser.Section) *NavItem {
 	item := &NavItem{
 		ID:    s.ID,
 		Title: s.Title,
-		URL:   "/" + s.ID,
+		URL:   b.urlPrefix + "/" + s.ID,
 		Level: s.Level,
 		Order: s.Order,
 	}
@@ -230,7 +262,7 @@ func sectionToNavItem(s *parser.Section) *NavItem {
 		item.Children = append(item.Children, &NavItem{
 			ID:    c.ID,
 			Title: c.Title,
-			URL:   "/" + s.ID + "/" + c.ID,
+			URL:   b.urlPrefix + "/" + s.ID + "/" + c.ID,
 			Level: c.Level,
 			Order: c.Order,
 		})
@@ -239,14 +271,14 @@ func sectionToNavItem(s *parser.Section) *NavItem {
 	return item
 }
 
+func (b *Builder) sectionURL(s *parser.Section) string {
+	return b.urlPrefix + "/" + s.ID
+}
+
 func flattenSections(sections []*parser.Section) []*parser.Section {
 	var flat []*parser.Section
 	for _, s := range sections {
 		flat = append(flat, s)
 	}
 	return flat
-}
-
-func sectionURL(s *parser.Section) string {
-	return "/" + s.ID
 }

@@ -19,12 +19,17 @@ func (s *Server) Routes() chi.Router {
 
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServerFS(s.staticFS)))
 
+	if s.contentFS != nil {
+		r.Handle("/static/content/*", s.contentFS)
+	}
+
 	r.Get("/healthz", s.handleHealthz)
 	r.Get("/readyz", s.handleReadyz)
 
 	r.Get("/", s.handleHome)
-	r.Get("/{section}", s.handleSection)
-	r.Get("/{section}/{subsection}", s.handleSubsection)
+	r.Get("/{slug1}", s.handleSlug1)
+	r.Get("/{slug1}/{slug2}", s.handleSlug2)
+	r.Get("/{slug1}/{slug2}/{slug3}", s.handleSlug3)
 
 	return r
 }

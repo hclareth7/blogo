@@ -26,7 +26,7 @@ func testSections() []*parser.Section {
 
 func TestBuildTree(t *testing.T) {
 	t.Parallel()
-	b := NewBuilder(testLogger())
+	b := NewBuilderForRepo(testLogger(), "system-design", true)
 	tree := b.BuildTree(testSections())
 
 	if tree == nil {
@@ -46,7 +46,7 @@ func TestBuildTree(t *testing.T) {
 
 func TestBuildTreeGrouping(t *testing.T) {
 	t.Parallel()
-	b := NewBuilder(testLogger())
+	b := NewBuilderForRepo(testLogger(), "system-design", true)
 	sections := []*parser.Section{
 		{ID: "what-is-system-design", Title: "What is system design?", Level: 1},
 		{ID: "ip", Title: "IP", Level: 1},
@@ -71,7 +71,7 @@ func TestBuildTreeGrouping(t *testing.T) {
 
 func TestBuildTreeChildURLs(t *testing.T) {
 	t.Parallel()
-	b := NewBuilder(testLogger())
+	b := NewBuilderForRepo(testLogger(), "system-design", true)
 	sections := []*parser.Section{
 		{ID: "ip", Title: "IP", Level: 1, Children: []*parser.Section{
 			{ID: "versions", Title: "Versions", Level: 2},
@@ -82,7 +82,7 @@ func TestBuildTreeChildURLs(t *testing.T) {
 	for _, g := range tree.Groups {
 		for _, item := range g.Items {
 			if item.ID == "ip" && len(item.Children) > 0 {
-				want := "/ip/versions"
+				want := "/system-design/ip/versions"
 				if item.Children[0].URL != want {
 					t.Errorf("child URL = %q, want %q", item.Children[0].URL, want)
 				}
@@ -93,7 +93,7 @@ func TestBuildTreeChildURLs(t *testing.T) {
 
 func TestBuildPrevNextFirst(t *testing.T) {
 	t.Parallel()
-	b := NewBuilder(testLogger())
+	b := NewBuilderForRepo(testLogger(), "system-design", true)
 	sections := testSections()
 
 	pn := b.BuildPrevNext(sections, "what-is-system-design")
@@ -111,7 +111,7 @@ func TestBuildPrevNextFirst(t *testing.T) {
 
 func TestBuildPrevNextLast(t *testing.T) {
 	t.Parallel()
-	b := NewBuilder(testLogger())
+	b := NewBuilderForRepo(testLogger(), "system-design", true)
 	sections := testSections()
 
 	pn := b.BuildPrevNext(sections, "load-balancing")
@@ -126,7 +126,7 @@ func TestBuildPrevNextLast(t *testing.T) {
 
 func TestBuildPrevNextMiddle(t *testing.T) {
 	t.Parallel()
-	b := NewBuilder(testLogger())
+	b := NewBuilderForRepo(testLogger(), "system-design", true)
 	sections := testSections()
 
 	pn := b.BuildPrevNext(sections, "ip")
@@ -141,7 +141,7 @@ func TestBuildPrevNextMiddle(t *testing.T) {
 
 func TestBuildBreadcrumbsRoot(t *testing.T) {
 	t.Parallel()
-	b := NewBuilder(testLogger())
+	b := NewBuilderForRepo(testLogger(), "system-design", true)
 	sections := testSections()
 
 	crumbs := b.BuildBreadcrumbs("ip", "", sections)
@@ -159,7 +159,7 @@ func TestBuildBreadcrumbsRoot(t *testing.T) {
 
 func TestBuildBreadcrumbsChild(t *testing.T) {
 	t.Parallel()
-	b := NewBuilder(testLogger())
+	b := NewBuilderForRepo(testLogger(), "system-design", true)
 	sections := testSections()
 
 	crumbs := b.BuildBreadcrumbs("versions", "ip", sections)

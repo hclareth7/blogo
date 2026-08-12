@@ -37,21 +37,15 @@ spec:
               containerPort: 8080
               protocol: TCP
           env:
-            - name: BLOGO_PORT
-              value: "8080"
-            - name: BLOGO_FETCH_ON_START
-              value: "true"
-            - name: BLOGO_LOG_LEVEL
-              value: "info"
-            - name: BLOGO_LOG_FORMAT
-              value: "json"
+            - name: BLOGO_CONFIG
+              value: "/config/blogo.yaml"
           resources:
             requests:
               cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 200m
               memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
           securityContext:
             runAsNonRoot: true
             allowPrivilegeEscalation: false
@@ -61,6 +55,14 @@ spec:
             capabilities:
               drop:
                 - ALL
+          startupProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
           readinessProbe:
             httpGet:
               path: /readyz
@@ -78,11 +80,17 @@ spec:
             timeoutSeconds: 3
             failureThreshold: 3
           volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
             - name: content
               mountPath: /content
             - name: tmp
               mountPath: /tmp
       volumes:
+        - name: config
+          configMap:
+            name: blogo-config
         - name: content
           emptyDir: {}
         - name: tmp

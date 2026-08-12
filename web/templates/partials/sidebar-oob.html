@@ -1,15 +1,64 @@
 {{define "sidebar-oob"}}
 {{$currentPath := .CurrentPath}}
+
+<!-- OOB swap: sidebar header -->
+<div id="sidebar-header" hx-swap-oob="innerHTML">
+    {{if .IsMultiRepo}}
+    <div class="p-4 border-b border-slate-200 dark:border-[#141c2e]"
+         x-data="{ open: false, search: '' }"
+         @click.outside="open = false"
+         @keydown.escape.window="open = false">
+        <button @click="open = !open" class="w-full flex items-center justify-between group">
+            <div class="text-left">
+                <h2 class="font-semibold text-sm flex items-center gap-1">
+                    {{.DocTitle}}
+                    <svg class="w-2.5 h-2.5 text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400">by {{.Author}}</p>
+            </div>
+        </button>
+        <div x-show="open" x-transition
+             class="absolute left-2 right-2 mt-2 bg-white dark:bg-[#141c2e] border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg z-50 overflow-hidden">
+            <div class="p-2">
+                <input type="text" x-model="search" placeholder="Search repos..."
+                       class="w-full px-3 py-1.5 text-sm rounded-md border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-[#0d1220] text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                       @click.stop>
+            </div>
+            <div class="max-h-48 overflow-y-auto">
+                {{range .RepoList}}
+                <a href="/{{.Slug}}"
+                   hx-get="/{{.Slug}}" hx-target="#main-content" hx-push-url="true" hx-swap="innerHTML scroll:window:top"
+                   x-show="'{{.Name}}'.toLowerCase().includes(search.toLowerCase())"
+                   @click="open = false; sidebarOpen = false"
+                   class="flex items-center gap-2 px-3 py-2 text-sm transition-colors
+                          {{if .Active}}bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium{{else}}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50{{end}}">
+                    {{if .Active}}<span class="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0"></span>{{end}}
+                    <span class="truncate">{{.Name}}</span>
+                </a>
+                {{end}}
+            </div>
+        </div>
+    </div>
+    {{else}}
+    <div class="p-4 border-b border-slate-200 dark:border-[#141c2e]">
+        <h2 class="font-semibold text-sm">{{.DocTitle}}</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">by {{.Author}}</p>
+    </div>
+    {{end}}
+</div>
+
+<!-- OOB swap: sidebar nav -->
 <nav id="sidebar-nav" hx-swap-oob="innerHTML" class="flex-1 overflow-y-auto p-3 space-y-1" aria-label="Documentation navigation">
     {{if .NavTree}}
     {{range .NavTree.Ungrouped}}
     <a href="{{.URL}}"
        hx-get="{{.URL}}" hx-target="#main-content" hx-push-url="true" hx-swap="innerHTML scroll:window:top"
        @click="sidebarOpen = false"
+       title="{{.Title}}"
        class="flex items-center justify-between px-3 py-1.5 text-sm rounded-lg transition-colors
               {{if isActive $currentPath .URL}}bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium{{else}}text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50{{end}}">
-        <span>{{.Title}}</span>
-        {{if isActive $currentPath .URL}}<span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>{{end}}
+        <span class="truncate">{{.Title}}</span>
+        {{if isActive $currentPath .URL}}<span class="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0"></span>{{end}}
     </a>
     {{end}}
 
@@ -36,6 +85,7 @@
             <a href="{{.URL}}"
                hx-get="{{.URL}}" hx-target="#main-content" hx-push-url="true" hx-swap="innerHTML scroll:window:top"
                @click="sidebarOpen = false"
+               title="{{.Title}}"
                class="flex items-center justify-between pl-7 pr-3 py-1.5 text-sm rounded-lg transition-colors
                       {{if isActive $currentPath .URL}}bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium{{else}}text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50{{end}}">
                 <span class="truncate">{{.Title}}</span>

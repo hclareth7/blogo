@@ -14,138 +14,107 @@ func testLogger() *slog.Logger {
 	return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
 }
 
-func TestFetchNewContent(t *testing.T) {
+func TestFetchSingleMD(t *testing.T) {
 	t.Parallel()
-	content := "# System Design\n\nHello world"
+	body := "# System Design\n\nHello world"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(content))
+		w.Write([]byte(body))
 	}))
 	defer srv.Close()
 
 	dir := t.TempDir()
-	f := NewFetcher(srv.URL, dir, testLogger())
+	f := NewFetcher(testLogger())
+	f.client = srv.Client()
 
-	changed, err := f.Fetch(context.Background())
+	err := f.FetchSingleMD(context.Background(), srv.URL, "main", dir, "test-repo")
 	if err != nil {
-		t.Fatalf("Fetch() error: %v", err)
-	}
-	if !changed {
-		t.Error("Fetch() returned changed=false, want true for new content")
+		t.Fatalf("FetchSingleMD() error: %v", err)
 	}
 
-	data, err := f.ReadContent()
+	data, err := f.ReadSingleMD(dir, "test-repo")
 	if err != nil {
-		t.Fatalf("ReadContent() error: %v", err)
+		t.Fatalf("ReadSingleMD() error: %v", err)
 	}
-	if string(data) != content {
-		t.Errorf("ReadContent() = %q, want %q", string(data), content)
+	if string(data) != body {
+		t.Errorf("ReadSingleMD() = %q, want %q", string(data), body)
 	}
 }
 
-func TestFetchUnchangedContent(t *testing.T) {
+func TestRepoSlug(t *testing.T) {
 	t.Parallel()
-	content := "# System Design\n\nSame content"
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(content))
-	}))
-	defer srv.Close()
-
-	dir := t.TempDir()
-	f := NewFetcher(srv.URL, dir, testLogger())
-
-	if _, err := f.Fetch(context.Background()); err != nil {
-		t.Fatalf("first Fetch() error: %v", err)
+	tests := []struct {
+		name string
+		want string
+	}{
+		{"System Design", "system-design"},
+		{"System Design Notes", "system-design-notes"},
+		{"My Repo!", "my-repo"},
 	}
-
-	changed, err := f.Fetch(context.Background())
-	if err != nil {
-		t.Fatalf("second Fetch() error: %v", err)
-	}
-	if changed {
-		t.Error("Fetch() returned changed=true, want false for same content")
-	}
-}
-
-func TestFetchChangedContent(t *testing.T) {
-	t.Parallel()
-	callCount := 0
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		callCount++
-		if callCount == 1 {
-			w.Write([]byte("version 1"))
-		} else {
-			w.Write([]byte("version 2"))
+	for _, tt := range tests {
+		got := RepoSlug(tt.name)
+		if got != tt.want {
+			t.Errorf("RepoSlug(%q) = %q, want %q", tt.name, got, tt.want)
 		}
-	}))
-	defer srv.Close()
-
-	dir := t.TempDir()
-	f := NewFetcher(srv.URL, dir, testLogger())
-
-	if _, err := f.Fetch(context.Background()); err != nil {
-		t.Fatalf("first Fetch() error: %v", err)
-	}
-
-	changed, err := f.Fetch(context.Background())
-	if err != nil {
-		t.Fatalf("second Fetch() error: %v", err)
-	}
-	if !changed {
-		t.Error("Fetch() returned changed=false, want true for different content")
-	}
-
-	data, err := f.ReadContent()
-	if err != nil {
-		t.Fatalf("ReadContent() error: %v", err)
-	}
-	if string(data) != "version 2" {
-		t.Errorf("ReadContent() = %q, want %q", string(data), "version 2")
 	}
 }
 
-func TestFetchServerError(t *testing.T) {
+func TestSlugifyFolder(t *testing.T) {
 	t.Parallel()
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-	}))
-	defer srv.Close()
-
-	dir := t.TempDir()
-	f := NewFetcher(srv.URL, dir, testLogger())
-
-	_, err := f.Fetch(context.Background())
-	if err == nil {
-		t.Fatal("Fetch() should return error for 500 response")
+	tests := []struct {
+		input string
+		want  string
+	}{
+		{"01. Scaling", "01-scaling"},
+		{"02. Back Of the Envelope Estimation", "02-back-of-the-envelope-estimation"},
+		{"24. S3-like Object Storage", "24-s3-like-object-storage"},
+		{"Simple Name", "simple-name"},
+	}
+	for _, tt := range tests {
+		got := slugifyFolder(tt.input)
+		if got != tt.want {
+			t.Errorf("slugifyFolder(%q) = %q, want %q", tt.input, got, tt.want)
+		}
 	}
 }
 
-func TestFetchAtomicWrite(t *testing.T) {
+func TestParseGitHubURL(t *testing.T) {
 	t.Parallel()
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("content"))
-	}))
-	defer srv.Close()
+	tests := []struct {
+		url        string
+		wantOwner  string
+		wantRepo   string
+	}{
+		{"https://github.com/karanpratapsingh/system-design", "karanpratapsingh", "system-design"},
+		{"https://github.com/liquidslr/system-design-notes", "liquidslr", "system-design-notes"},
+		{"https://github.com/owner/repo.git", "owner", "repo"},
+	}
+	for _, tt := range tests {
+		owner, repo := parseGitHubURL(tt.url)
+		if owner != tt.wantOwner || repo != tt.wantRepo {
+			t.Errorf("parseGitHubURL(%q) = (%q, %q), want (%q, %q)", tt.url, owner, repo, tt.wantOwner, tt.wantRepo)
+		}
+	}
+}
 
+func TestAtomicWrite(t *testing.T) {
+	t.Parallel()
 	dir := t.TempDir()
-	f := NewFetcher(srv.URL, dir, testLogger())
+	dest := filepath.Join(dir, "test.txt")
 
-	if _, err := f.Fetch(context.Background()); err != nil {
-		t.Fatalf("Fetch() error: %v", err)
+	if err := atomicWrite(dest, []byte("hello")); err != nil {
+		t.Fatalf("atomicWrite() error: %v", err)
 	}
 
-	tmp := filepath.Join(dir, filename+".tmp")
+	data, err := os.ReadFile(dest)
+	if err != nil {
+		t.Fatalf("ReadFile() error: %v", err)
+	}
+	if string(data) != "hello" {
+		t.Errorf("file content = %q, want %q", string(data), "hello")
+	}
+
+	tmp := dest + ".tmp"
 	if _, err := os.Stat(tmp); !os.IsNotExist(err) {
-		t.Error("temp file should not exist after successful fetch")
-	}
-}
-
-func TestReadContentMissing(t *testing.T) {
-	t.Parallel()
-	dir := t.TempDir()
-	f := NewFetcher("http://unused", dir, testLogger())
-
-	_, err := f.ReadContent()
-	if err == nil {
-		t.Fatal("ReadContent() should return error when file doesn't exist")
+		t.Error("temp file should not exist after successful write")
 	}
 }

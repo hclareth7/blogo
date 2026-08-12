@@ -11,6 +11,14 @@ import (
 	"github.com/hclareth7/blogo/internal/parser"
 )
 
+type RepoMeta struct {
+	Name   string
+	Slug   string
+	Author string
+	Type   string
+	Active bool
+}
+
 type PageData struct {
 	Title       string
 	Section     *parser.Section
@@ -23,6 +31,9 @@ type PageData struct {
 	MetaDesc    string
 	CurrentPath string
 	DocTitle    string
+	RepoSlug    string
+	RepoList    []RepoMeta
+	IsMultiRepo bool
 }
 
 type Renderer struct {

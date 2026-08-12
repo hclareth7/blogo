@@ -1,10 +1,8 @@
-# 🌍 BLOGO
+# <img src="web/static/favicon.svg" alt="BLOGO" width="32" height="32"> BLOGO
 
-> A modern and interactive System Design documentation platform built with Go.
+> A multi-repo documentation platform that transforms Markdown repositories into searchable, navigable learning experiences.
 
-BLOGO transforms the excellent System Design knowledge base created by Karan Pratap Singh into a faster, more searchable, and more navigable learning experience.
-
-Instead of reading a massive README from top to bottom, BLOGO allows engineers to explore concepts through structured navigation, deep links, full-text search, and an optimized reading experience.
+BLOGO reads multiple Git repositories with different organizational structures — from a single giant README to folder-per-topic layouts — and serves them as a unified, interactive documentation site with structured navigation, deep links, and full-text search.
 
 BLOGO is the first planet inside the **hclareth.space** universe.
 
@@ -14,7 +12,7 @@ BLOGO is the first planet inside the **hclareth.space** universe.
 
 BLOGO exists for two reasons:
 
-1. Create a better learning experience for System Design.
+1. Create a better learning experience from community-maintained Markdown repositories.
 2. Serve as a playground for learning:
    - Go
    - Concurrency
@@ -73,32 +71,24 @@ hclareth.space
 
 ---
 
-## Content Source
+## Content Sources
 
-BLOGO uses the public System Design repository maintained by Karan Pratap Singh as its content source.
+BLOGO supports multiple Git repositories as content sources. The default configuration includes:
 
-Original project:
-
-https://github.com/karanpratapsingh/system-design
+| Repository | Author | Type |
+|---|---|---|
+| [karanpratapsingh/system-design](https://github.com/karanpratapsingh/system-design) | Karan Pratap Singh | `single-md` |
+| [liquidslr/system-design-notes](https://github.com/liquidslr/system-design-notes) | liquidslr | `multi-folder` |
 
 ---
 
 ## Attribution
 
-This project does not claim ownership of the original educational content.
+This project does not claim ownership of any educational content.
 
-All educational material belongs to its original author:
+All educational material belongs to its original authors.
 
-**Karan Pratap Singh**
-
-BLOGO focuses on improving:
-
-- Navigation
-- Searchability
-- Accessibility
-- Reading experience
-
-while preserving attribution and respecting the original license.
+BLOGO focuses on improving navigation, searchability, accessibility, and reading experience while preserving attribution and respecting original licenses.
 
 ---
 
@@ -121,21 +111,22 @@ Users should review the original repository and license before reusing content.
 ## Architecture
 
 ```text
-GitHub README
+blogo.yaml (repo list)
        │
        ▼
-Markdown Parser
+  ┌─────────────────────────┐
+  │  For each repo:         │
+  │  GitHub Repo → Fetcher  │
+  │  → Markdown Parser      │
+  │  → Document Index       │
+  │  → Navigation Tree      │
+  └─────────────────────────┘
        │
        ▼
-Document Index
-       │
-       ├── Navigation Tree
-       ├── Search Index
-       ├── SEO Routes
-       └── Content Renderer
+  HTTP Server (Chi + HTMX)
        │
        ▼
-BLOGO UI
+  Browser (repo selector UI)
 ```
 
 ---
@@ -196,10 +187,12 @@ blogo/
 ├── specs/
 │   ├── vision.md
 │   ├── architecture.md
+│   ├── multi-repo.md
 │   ├── navigation.md
 │   ├── search.md
 │   └── ui.md
 │
+├── blogo.yaml            # Multi-repo configuration
 ├── Dockerfile
 └── README.md
 ```
@@ -246,6 +239,16 @@ Release
 - YAML config file (`blogo.yaml`) for repo list
 - Searchable repo selector in sidebar
 - Per-repo URL routing (`/{repo-slug}/{section}`)
+
+### Phase 1.2.1
+
+- Chapter ordering by numeric prefix for `multi-folder` repos
+- Root README.md support (shown as first sidebar item)
+- HTML `<img>` tag image path rewriting
+- Dynamic footer copyright per repo author
+- Sidebar nav truncation with tooltips for long titles
+- Repo selector arrow icon sizing
+- Standard repo templates documentation (`specs/repo-standards.md`)
 
 ### Phase 2
 
@@ -297,7 +300,7 @@ EOF
 go run ./cmd/blogo
 ```
 
-### With environment variables (single repo)
+### With environment variables (legacy, single repo)
 
 ```bash
 git clone https://github.com/hclareth7/blogo.git
@@ -347,7 +350,8 @@ before opening issues or pull requests.
 
 ## Acknowledgments
 
-- Karan Pratap Singh for the original System Design content
+- Karan Pratap Singh for the System Design content
+- liquidslr for the System Design Notes
 - The Go community
 - Open Source maintainers worldwide
 

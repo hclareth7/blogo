@@ -22,7 +22,9 @@ func testServer(t *testing.T) *Server {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
 
 	doc := &parser.Document{
-		Title: "System Design",
+		Title:    "System Design",
+		RepoSlug: "system-design",
+		Author:   "Karan Pratap Singh",
 		Sections: []*parser.Section{
 			{
 				ID: "intro", Title: "Introduction", Level: 1,
@@ -45,7 +47,7 @@ func testServer(t *testing.T) *Server {
 	}
 
 	index := parser.NewIndex(doc)
-	navBuilder := navigation.NewBuilder(logger)
+	navBuilder := navigation.NewBuilderForRepo(logger, "system-design", true)
 	navTree := navBuilder.BuildTree(doc.Sections)
 
 	rend, err := renderer.New(templates.FS, logger)
@@ -53,9 +55,30 @@ func testServer(t *testing.T) *Server {
 		t.Fatalf("renderer.New() error: %v", err)
 	}
 
-	cfg := &config.Config{Port: 0}
+	cfg := &config.Config{
+		Port: 0,
+		Repos: []config.RepoConfig{
+			{Name: "System Design", Type: "single-md", Author: "Karan Pratap Singh"},
+		},
+	}
 
-	return New(cfg, doc, index, navTree, navBuilder, rend, static.FS, logger)
+	repos := map[string]*RepoState{
+		"system-design": {
+			Doc:     doc,
+			Index:   index,
+			NavTree: navTree,
+			NavBld:  navBuilder,
+			Meta: renderer.RepoMeta{
+				Name:   "System Design",
+				Slug:   "system-design",
+				Author: "Karan Pratap Singh",
+				Type:   "single-md",
+			},
+		},
+	}
+	repoOrder := []string{"system-design"}
+
+	return New(cfg, repos, repoOrder, rend, static.FS, logger)
 }
 
 func TestHealthz(t *testing.T) {
@@ -103,31 +126,45 @@ func TestHomePage(t *testing.T) {
 	}
 }
 
-func TestSectionPage(t *testing.T) {
+func TestRepoHomePage(t *testing.T) {
 	t.Parallel()
 	srv := testServer(t)
 	r := srv.Routes()
 
-	req := httptest.NewRequest("GET", "/ip", nil)
+	req := httptest.NewRequest("GET", "/system-design", nil)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
-		t.Errorf("section status = %d, want %d", w.Code, http.StatusOK)
+		t.Errorf("repo home status = %d, want %d", w.Code, http.StatusOK)
 	}
 }
 
-func TestSubsectionPage(t *testing.T) {
+func TestRepoSectionPage(t *testing.T) {
 	t.Parallel()
 	srv := testServer(t)
 	r := srv.Routes()
 
-	req := httptest.NewRequest("GET", "/ip/versions", nil)
+	req := httptest.NewRequest("GET", "/system-design/ip", nil)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
-		t.Errorf("subsection status = %d, want %d", w.Code, http.StatusOK)
+		t.Errorf("repo section status = %d, want %d", w.Code, http.StatusOK)
+	}
+}
+
+func TestRepoSubsectionPage(t *testing.T) {
+	t.Parallel()
+	srv := testServer(t)
+	r := srv.Routes()
+
+	req := httptest.NewRequest("GET", "/system-design/ip/versions", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("repo subsection status = %d, want %d", w.Code, http.StatusOK)
 	}
 }
 
@@ -164,7 +201,7 @@ func TestHTMXPartialResponse(t *testing.T) {
 	srv := testServer(t)
 	r := srv.Routes()
 
-	req := httptest.NewRequest("GET", "/ip", nil)
+	req := httptest.NewRequest("GET", "/system-design/ip", nil)
 	req.Header.Set("HX-Request", "true")
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)

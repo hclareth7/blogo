@@ -4,8 +4,8 @@
 
 | Field       | Value              |
 |-------------|--------------------|
-| Version     | 1.0                |
-| Status      | Draft              |
+| Version     | 2.0                |
+| Status      | Updated            |
 | Author      | Hernando Clareth   |
 | Created     | 2026-08-11         |
 
@@ -13,13 +13,13 @@
 
 ## Purpose
 
-BLOGO is a modern, interactive documentation platform that transforms the System Design knowledge base by Karan Pratap Singh into a structured, searchable, and navigable learning experience.
+BLOGO is a modern, interactive documentation platform that transforms Markdown repositories into structured, searchable, and navigable learning experiences.
 
-Instead of reading a monolithic README, engineers explore concepts through structured navigation, deep links, full-text search, and an optimized reading experience.
+It supports multiple content repositories with different organizational structures (`single-md` and `multi-folder`), serving them as a unified documentation site with structured navigation, deep links, full-text search, and an optimized reading experience.
 
 ## Problem Statement
 
-The original System Design repository is a single large README file. While the content is excellent, the format has limitations:
+Many open-source knowledge repositories use raw Markdown (large READMEs or folder-per-topic layouts). While the content is excellent, the format has limitations:
 
 - No table of contents or sidebar navigation
 - No search capability
@@ -42,7 +42,8 @@ BLOGO parses the Markdown source, builds a document index, and serves the conten
 
 ### In Scope
 
-- Rendering System Design content from Karan Pratap Singh's repository
+- Rendering content from multiple configured repositories (`blogo.yaml`)
+- Supporting `single-md` and `multi-folder` repository types
 - Markdown parsing with support for code blocks, tables, images, Mermaid diagrams
 - Navigation tree generation from document headings
 - Full-text search indexing and querying
@@ -56,24 +57,24 @@ BLOGO parses the Markdown source, builds a document index, and serves the conten
 - User-generated content or comments
 - User authentication or accounts
 - Content editing through the UI
-- Multi-source content aggregation (single source only)
 - Content modification or transformation beyond rendering
 
-## Content Source
+## Content Sources
 
-| Field          | Value                                              |
-|----------------|----------------------------------------------------|
-| Repository     | https://github.com/karanpratapsingh/system-design  |
-| Format         | Markdown (single README.md)                        |
-| License        | CC BY-NC-ND 4.0                                    |
-| Strategy       | Fetch job (pull-based)                             |
-| Future         | Webhook on push to main (TBD)                      |
+Content repositories are configured in `blogo.yaml`. Default sources:
+
+| Repository | Author | Type |
+|---|---|---|
+| karanpratapsingh/system-design | Karan Pratap Singh | `single-md` |
+| liquidslr/system-design-notes | liquidslr | `multi-folder` |
+
+Standard repo templates: `specs/repo-standards.md`
 
 ## Content License Compliance
 
-The source content is licensed under CC BY-NC-ND 4.0. BLOGO must:
+Content is licensed by its respective authors (e.g., CC BY-NC-ND 4.0). BLOGO must:
 
-- Preserve full attribution to Karan Pratap Singh
+- Preserve full attribution to each content author (dynamic per-repo)
 - Avoid commercial usage
 - Not create derivative works of the content itself
 - Display the original license prominently
