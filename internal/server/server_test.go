@@ -47,7 +47,7 @@ func testServer(t *testing.T) *Server {
 	}
 
 	index := parser.NewIndex(doc)
-	navBuilder := navigation.NewBuilderForRepo(logger, "system-design", true)
+	navBuilder := navigation.NewBuilderForRepo(logger, "system-design")
 	navTree := navBuilder.BuildTree(doc.Sections)
 
 	rend, err := renderer.New(templates.FS, logger)

@@ -52,12 +52,7 @@ func main() {
 
 		index := parser.NewIndex(doc)
 
-		var navBuilder *navigation.Builder
-		if slug == "system-design" {
-			navBuilder = navigation.NewBuilderForRepo(logger, slug, true)
-		} else {
-			navBuilder = navigation.NewBuilderForRepo(logger, slug, false)
-		}
+		navBuilder := navigation.NewBuilderForRepo(logger, slug)
 		navTree := navBuilder.BuildTree(doc.Sections)
 
 		repos[slug] = &server.RepoState{

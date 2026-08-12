@@ -250,6 +250,12 @@ Release
 - Repo selector arrow icon sizing
 - Standard repo templates documentation (`specs/repo-standards.md`)
 
+### Phase 1.2.2
+
+- Generic flat navigation (removed repo-specific section groups and icons)
+- Dot bullet indicators for all sidebar sections
+- Repo selector redesign with initial letter avatars, "Current source" / "Switch source repository" labels
+
 ### Phase 2
 
 - Search engine
