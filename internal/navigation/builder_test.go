@@ -26,52 +26,43 @@ func testSections() []*parser.Section {
 
 func TestBuildTree(t *testing.T) {
 	t.Parallel()
-	b := NewBuilderForRepo(testLogger(), "system-design", true)
+	b := NewBuilderForRepo(testLogger(), "system-design")
 	tree := b.BuildTree(testSections())
 
 	if tree == nil {
 		t.Fatal("BuildTree returned nil")
 	}
 
-	totalItems := 0
-	for _, g := range tree.Groups {
-		totalItems += len(g.Items)
-	}
-	totalItems += len(tree.Ungrouped)
-
-	if totalItems == 0 {
-		t.Error("tree has no items")
+	if len(tree.Ungrouped) != 4 {
+		t.Errorf("len(Ungrouped) = %d, want 4", len(tree.Ungrouped))
 	}
 }
 
-func TestBuildTreeGrouping(t *testing.T) {
+func TestBuildTreeFlatOrder(t *testing.T) {
 	t.Parallel()
-	b := NewBuilderForRepo(testLogger(), "system-design", true)
+	b := NewBuilderForRepo(testLogger(), "test-repo")
 	sections := []*parser.Section{
-		{ID: "what-is-system-design", Title: "What is system design?", Level: 1},
-		{ID: "ip", Title: "IP", Level: 1},
-		{ID: "load-balancing", Title: "Load Balancing", Level: 1},
-		{ID: "sql-databases", Title: "SQL Databases", Level: 1},
+		{ID: "intro", Title: "Introduction", Level: 1, Order: 0},
+		{ID: "chapter-1", Title: "Chapter 1", Level: 1, Order: 1},
+		{ID: "chapter-2", Title: "Chapter 2", Level: 1, Order: 2},
 	}
 
 	tree := b.BuildTree(sections)
 
-	groupNames := make(map[string]bool)
-	for _, g := range tree.Groups {
-		groupNames[g.Name] = true
+	if len(tree.Ungrouped) != 3 {
+		t.Fatalf("len(Ungrouped) = %d, want 3", len(tree.Ungrouped))
 	}
-
-	if !groupNames["Getting Started"] {
-		t.Error("missing 'Getting Started' group")
+	if tree.Ungrouped[0].Title != "Introduction" {
+		t.Errorf("first item = %q, want Introduction", tree.Ungrouped[0].Title)
 	}
-	if !groupNames["Fundamentals"] {
-		t.Error("missing 'Fundamentals' group")
+	if tree.Ungrouped[2].Title != "Chapter 2" {
+		t.Errorf("last item = %q, want Chapter 2", tree.Ungrouped[2].Title)
 	}
 }
 
 func TestBuildTreeChildURLs(t *testing.T) {
 	t.Parallel()
-	b := NewBuilderForRepo(testLogger(), "system-design", true)
+	b := NewBuilderForRepo(testLogger(), "system-design")
 	sections := []*parser.Section{
 		{ID: "ip", Title: "IP", Level: 1, Children: []*parser.Section{
 			{ID: "versions", Title: "Versions", Level: 2},
@@ -79,21 +70,22 @@ func TestBuildTreeChildURLs(t *testing.T) {
 	}
 	tree := b.BuildTree(sections)
 
-	for _, g := range tree.Groups {
-		for _, item := range g.Items {
-			if item.ID == "ip" && len(item.Children) > 0 {
-				want := "/system-design/ip/versions"
-				if item.Children[0].URL != want {
-					t.Errorf("child URL = %q, want %q", item.Children[0].URL, want)
-				}
-			}
-		}
+	if len(tree.Ungrouped) != 1 {
+		t.Fatalf("len(Ungrouped) = %d, want 1", len(tree.Ungrouped))
+	}
+	item := tree.Ungrouped[0]
+	if len(item.Children) == 0 {
+		t.Fatal("item should have children")
+	}
+	want := "/system-design/ip/versions"
+	if item.Children[0].URL != want {
+		t.Errorf("child URL = %q, want %q", item.Children[0].URL, want)
 	}
 }
 
 func TestBuildPrevNextFirst(t *testing.T) {
 	t.Parallel()
-	b := NewBuilderForRepo(testLogger(), "system-design", true)
+	b := NewBuilderForRepo(testLogger(), "system-design")
 	sections := testSections()
 
 	pn := b.BuildPrevNext(sections, "what-is-system-design")
@@ -111,7 +103,7 @@ func TestBuildPrevNextFirst(t *testing.T) {
 
 func TestBuildPrevNextLast(t *testing.T) {
 	t.Parallel()
-	b := NewBuilderForRepo(testLogger(), "system-design", true)
+	b := NewBuilderForRepo(testLogger(), "system-design")
 	sections := testSections()
 
 	pn := b.BuildPrevNext(sections, "load-balancing")
@@ -126,7 +118,7 @@ func TestBuildPrevNextLast(t *testing.T) {
 
 func TestBuildPrevNextMiddle(t *testing.T) {
 	t.Parallel()
-	b := NewBuilderForRepo(testLogger(), "system-design", true)
+	b := NewBuilderForRepo(testLogger(), "system-design")
 	sections := testSections()
 
 	pn := b.BuildPrevNext(sections, "ip")
@@ -141,7 +133,7 @@ func TestBuildPrevNextMiddle(t *testing.T) {
 
 func TestBuildBreadcrumbsRoot(t *testing.T) {
 	t.Parallel()
-	b := NewBuilderForRepo(testLogger(), "system-design", true)
+	b := NewBuilderForRepo(testLogger(), "system-design")
 	sections := testSections()
 
 	crumbs := b.BuildBreadcrumbs("ip", "", sections)
@@ -159,7 +151,7 @@ func TestBuildBreadcrumbsRoot(t *testing.T) {
 
 func TestBuildBreadcrumbsChild(t *testing.T) {
 	t.Parallel()
-	b := NewBuilderForRepo(testLogger(), "system-design", true)
+	b := NewBuilderForRepo(testLogger(), "system-design")
 	sections := testSections()
 
 	crumbs := b.BuildBreadcrumbs("versions", "ip", sections)

@@ -12,11 +12,12 @@ import (
 )
 
 type RepoMeta struct {
-	Name   string
-	Slug   string
-	Author string
-	Type   string
-	Active bool
+	Name      string
+	Slug      string
+	Author    string
+	Type      string
+	Active    bool
+	AvatarURL string
 }
 
 type PageData struct {
@@ -27,6 +28,7 @@ type PageData struct {
 	PrevNext    *navigation.PrevNext
 	ReadingTime int
 	Author      string
+	AvatarURL   string
 	OriginalURL string
 	MetaDesc    string
 	CurrentPath string
@@ -49,6 +51,7 @@ func New(templateFS fs.FS, logger *slog.Logger) (*Renderer, error) {
 		"isActive":    isActive,
 		"hasPrefix":   strings.HasPrefix,
 		"add":         func(a, b int) int { return a + b },
+		"initial":     initial,
 	}
 
 	tmpl, err := template.New("").Funcs(funcMap).ParseFS(templateFS, "*.html", "partials/*.html")
@@ -79,6 +82,13 @@ func truncate(s string, n int) string {
 		return s
 	}
 	return s[:n] + "..."
+}
+
+func initial(s string) string {
+	for _, r := range s {
+		return strings.ToUpper(string(r))
+	}
+	return ""
 }
 
 func isActive(currentPath, itemURL string) bool {

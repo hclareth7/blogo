@@ -5,22 +5,14 @@ type NavItem struct {
 	Title    string
 	URL      string
 	Level    int
-	Icon     string
 	Active   bool
 	Expanded bool
 	Children []*NavItem
 	Order    int
 }
 
-type NavGroup struct {
-	Name  string
-	Icon  string
-	Items []*NavItem
-}
-
 type NavTree struct {
 	Ungrouped []*NavItem
-	Groups    []*NavGroup
 }
 
 type PrevNext struct {

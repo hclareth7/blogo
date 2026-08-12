@@ -271,6 +271,14 @@ func checksum(data []byte) string {
 	return fmt.Sprintf("%x", h)
 }
 
+func OwnerAvatarURL(repoURL string) string {
+	owner, _ := parseGitHubURL(repoURL)
+	if owner == "" {
+		return ""
+	}
+	return "https://github.com/" + owner + ".png?size=64"
+}
+
 func RepoSlug(name string) string {
 	s := strings.ToLower(name)
 	s = strings.ReplaceAll(s, " ", "-")

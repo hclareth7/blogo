@@ -115,98 +115,67 @@ Components:
 
 ## Sidebar
 
-### Repo Selector (Phase 1.2)
+### Repo Selector (Phase 1.2, updated Phase 1.2.2)
 
-The sidebar header includes a searchable autocomplete dropdown to switch between loaded repos:
+The sidebar header includes a searchable dropdown to switch between loaded repos.
 
 ```
-┌─────────────────────┐
-│ 🔽 System Design    │  ← click to open selector
-│ by Karan Pratap S.  │
-├─────────────────────┤
-│ 🔍 Search repos...  │  ← autocomplete input (Alpine.js)
-│                     │
-│ ● System Design     │  ← active repo (highlighted)
-│   System Design N.  │
-│   [future repos]    │
-└─────────────────────┘
+┌─────────────────────────┐
+│ CURRENT SOURCE          │  <- label
+│ [S] System Design     ▾ │  <- initial avatar + name + chevron
+│     by Karan Pratap S.  │  <- author
+├─────────────────────────┤
+│ SWITCH SOURCE REPOSITORY│  <- dropdown header
+│ Search repos...         │  <- filter input
+│                         │
+│ [S] System Design     ● │  <- active: blue avatar + dot
+│     by Karan Pratap S.  │
+│ [S] System Design Notes │  <- inactive: grey avatar
+│     by liquidslr        │
+└─────────────────────────┘
 ```
 
 **Behavior:**
-- Clicking the repo name/chevron opens a dropdown with search input
-- Typing filters the repo list (client-side, Alpine.js `x-model` + `x-show`)
-- Selecting a repo navigates to `/{repo-slug}` via HTMX (swaps content + sidebar nav OOB)
-- Current repo name + author displayed in the sidebar header
+- "Current source" label shown above the active repo
+- Colored initial avatar (first letter of repo name) for each repo
+- Active repo: blue avatar; inactive: grey avatar
+- Search input filters the repo list (Alpine.js `x-model` + `x-show`)
+- Selecting a repo navigates to `/{repo-slug}` via HTMX (swaps content + sidebar OOB)
 - Dropdown closes on selection, click outside, or Escape key
-- With a single repo configured, the selector is hidden (static header, current behavior)
+- Single repo configured: static header without selector
 
-### Structure
+Reference mockup: `specs/mockups/repo-selector-ui.jpeg`
+
+### Navigation Structure (Phase 1.2.2)
+
+All repos use a flat section list with dot bullet indicators. No repo-specific grouping or icons.
 
 ```
-┌─────────────────────┐
-│ 🔽 System Design    │  ← repo selector (when multiple repos)
-│ by Karan Pratap Singh│
-│                      │
-│ ● Introduction    ·  │  ← active: blue bg + dot indicator
-│   Getting Started    │
-│                      │
-│ 📖 Fundamentals    ▾ │  ← collapsible group with icon
-│   What is System D?  │
-│   Why System Design? │
-│   How to Approach?   │
-│   Design Principles  │
-│   Common Pitfalls    │
-│                      │
-│ 🌐 Network         ▾ │
-│   OSI Model          │
-│   DNS (Domain Name)  │
-│   HTTP / HTTPS       │
-│   Load Balancer      │
-│   CDN (Content Del.) │
-│                      │
-│ 💻 Compute          ▾ │
-│   Servers            │
-│   Containers         │
-│   Virtualization     │
-│                      │
-│ 🗄 Storage           ▾ │
-│   Databases Overview │
-│   SQL Databases      │
-│   NoSQL Databases    │
-│   CAP Theorem        │
-└─────────────────────┘
+┌─────────────────────────┐
+│ CURRENT SOURCE          │
+│ [S] System Design     ▾ │
+│     by Karan Pratap S.  │
+│                         │
+│ ● What is System Design │  <- active: blue dot + highlight
+│ · IP                    │  <- inactive: grey dot
+│ · OSI Model             │
+│ · TCP and UDP           │
+│ · DNS                   │
+│ · Load Balancing        │
+│ · Clustering            │
+│ · Caching               │
+│ · CDN                   │
+│ · Proxy                 │
+│ · ...                   │
+└─────────────────────────┘
 ```
-
-### Section Group Icons
-
-Each top-level category has an icon:
-
-| Group          | Icon                  | Description           |
-|----------------|-----------------------|-----------------------|
-| Fundamentals   | Book (📖)             | Foundational concepts |
-| Network        | Globe (🌐)            | Network topics        |
-| Compute        | Server/Monitor (💻)   | Compute resources     |
-| Storage        | Database (🗄)          | Storage topics        |
-
-Icons are rendered as SVG or icon font (Lucide/Heroicons), not emoji. The mockup uses emoji for illustration only.
 
 ### Active Section Indicator
 
-- Active section has a **blue/accent background** with rounded corners
-- A small **dot indicator** (●) appears to the right of the active section name
-- Active state uses `bg-blue-500/10` (light) / `bg-blue-500/20` (dark) with `text-blue-600` / `text-blue-400`
-
-### Sidebar Header
-
-- Title: "System Design" (bold)
-- Subtitle: "by Karan Pratap Singh" (muted text, smaller)
-
-### Collapsible Groups
-
-- Click the group header or chevron to expand/collapse children
-- Chevron rotates: ▸ (collapsed) → ▾ (expanded)
-- Expanded state persisted in `sessionStorage`
-- Groups default to expanded on first visit
+- Active section has a **blue dot** (●) and **blue/accent background** with rounded corners
+- Inactive sections have a **grey dot** (·)
+- Active state uses `bg-blue-500/10` with `text-blue-600` / `text-blue-400`
+- Long titles are truncated with CSS `truncate` and show full text on hover (tooltip)
 
 ### Sidebar Width
 
@@ -240,13 +209,13 @@ Home > Fundamentals > What is System Design?
 Below the page title, a metadata line provides context:
 
 ```
-📖 5 min read  •  👤 Karan Pratap Singh  •  Original README ↗
+📖 5 min read  •  👤 {repo.author}  •  Original README ↗
 ```
 
 | Element            | Description                                    |
 |--------------------|------------------------------------------------|
 | Reading time       | Clock icon + estimated minutes (word count / 200 WPM) |
-| Author             | Person icon + "Karan Pratap Singh"             |
+| Author             | Person icon + repo author (dynamic per repo)   |
 | Original README    | Link to the source section in the GitHub repo, external link icon |
 
 - Items separated by bullet (•)
@@ -261,8 +230,8 @@ Styled admonition blocks for important notes:
 │ ℹ  Note                                  │
 │                                          │
 │ The content is sourced from the original │
-│ README of the system-design repository   │
-│ by Karan Pratap Singh.                   │
+│ repository by the respective author.     │
+│                                          │
 └──────────────────────────────────────────┘
 ```
 
@@ -469,7 +438,7 @@ Three-column footer with the hclareth.space universe theme:
 
 ### Right Column — Attribution
 
-- "Source content © Karan Pratap Singh"
+- "Source content © {repo.author}" (dynamic per repo)
 - "Licensed under CC BY-NC-ND 4.0"
 - GitHub icon (links to BLOGO repository)
 

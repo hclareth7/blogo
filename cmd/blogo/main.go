@@ -52,12 +52,7 @@ func main() {
 
 		index := parser.NewIndex(doc)
 
-		var navBuilder *navigation.Builder
-		if slug == "system-design" {
-			navBuilder = navigation.NewBuilderForRepo(logger, slug, true)
-		} else {
-			navBuilder = navigation.NewBuilderForRepo(logger, slug, false)
-		}
+		navBuilder := navigation.NewBuilderForRepo(logger, slug)
 		navTree := navBuilder.BuildTree(doc.Sections)
 
 		repos[slug] = &server.RepoState{
@@ -66,10 +61,11 @@ func main() {
 			NavTree: navTree,
 			NavBld:  navBuilder,
 			Meta: renderer.RepoMeta{
-				Name:   repoCfg.Name,
-				Slug:   slug,
-				Author: repoCfg.Author,
-				Type:   repoCfg.Type,
+				Name:      repoCfg.Name,
+				Slug:      slug,
+				Author:    repoCfg.Author,
+				Type:      repoCfg.Type,
+				AvatarURL: content.OwnerAvatarURL(repoCfg.URL),
 			},
 		}
 		repoOrder = append(repoOrder, slug)

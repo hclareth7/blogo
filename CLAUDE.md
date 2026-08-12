@@ -176,6 +176,7 @@ oc create secret docker-registry blogo-pull-secret \
 - Phase 1.1: Dockerfile, OpenShift manifests (Kustomize), cert-manager TLS
 - Phase 1.2: Multi-repo support (single-md + multi-folder), config file, repo selector UI
 - Phase 1.2.1: Multi-folder ordering, root README, HTML image rewriting, dynamic footer, nav tooltips, repo standards
+- Phase 1.2.2: Generic flat nav (remove repo-specific groups/icons), dot bullet sections, repo selector redesign with initial avatars
 - Phase 2: Search engine, deep linking, SEO routes
 - Phase 3: Reading progress, keyboard navigation, enhanced UX
 - Phase 4: Advanced indexing, performance optimization, content sync
