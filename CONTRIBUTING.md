@@ -62,7 +62,7 @@ See `CLAUDE.md` for the full project structure and conventions.
 
 ## Content vs Code
 
-BLOGO's code is licensed under **Apache 2.0**. The System Design content displayed by BLOGO belongs to Karan Pratap Singh and is licensed under **CC BY-NC-ND 4.0**. Contributions must not modify the original content.
+BLOGO's code is licensed under **Apache 2.0**. The content displayed by BLOGO belongs to its respective authors and is licensed under their original terms (e.g., **CC BY-NC-ND 4.0**). Contributions must not modify the original content.
 
 ## Code of Conduct
 

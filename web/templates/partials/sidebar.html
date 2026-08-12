@@ -20,7 +20,7 @@
             <div class="text-left">
                 <h2 class="font-semibold text-sm flex items-center gap-1">
                     {{.DocTitle}}
-                    <svg class="w-3.5 h-3.5 text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    <svg class="w-2.5 h-2.5 text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </h2>
                 <p class="text-xs text-slate-500 dark:text-slate-400">by {{.Author}}</p>
             </div>
@@ -62,10 +62,11 @@
         <a href="{{.URL}}"
            hx-get="{{.URL}}" hx-target="#main-content" hx-push-url="true" hx-swap="innerHTML scroll:window:top"
            @click="sidebarOpen = false"
+           title="{{.Title}}"
            class="flex items-center justify-between px-3 py-1.5 text-sm rounded-lg transition-colors
                   {{if isActive $currentPath .URL}}bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium{{else}}text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50{{end}}">
-            <span>{{.Title}}</span>
-            {{if isActive $currentPath .URL}}<span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>{{end}}
+            <span class="truncate">{{.Title}}</span>
+            {{if isActive $currentPath .URL}}<span class="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0"></span>{{end}}
         </a>
         {{end}}
 
@@ -92,6 +93,7 @@
                 <a href="{{.URL}}"
                    hx-get="{{.URL}}" hx-target="#main-content" hx-push-url="true" hx-swap="innerHTML scroll:window:top"
                    @click="sidebarOpen = false"
+                   title="{{.Title}}"
                    class="flex items-center justify-between pl-7 pr-3 py-1.5 text-sm rounded-lg transition-colors
                           {{if isActive $currentPath .URL}}bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium{{else}}text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50{{end}}">
                     <span class="truncate">{{.Title}}</span>

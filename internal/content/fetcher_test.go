@@ -64,9 +64,9 @@ func TestSlugifyFolder(t *testing.T) {
 		input string
 		want  string
 	}{
-		{"01. Scaling", "scaling"},
-		{"02. Back Of the Envelope Estimation", "back-of-the-envelope-estimation"},
-		{"24. S3-like Object Storage", "s3-like-object-storage"},
+		{"01. Scaling", "01-scaling"},
+		{"02. Back Of the Envelope Estimation", "02-back-of-the-envelope-estimation"},
+		{"24. S3-like Object Storage", "24-s3-like-object-storage"},
 		{"Simple Name", "simple-name"},
 	}
 	for _, tt := range tests {

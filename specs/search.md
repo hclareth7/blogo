@@ -14,7 +14,7 @@
 
 ## Overview
 
-BLOGO provides full-text search across all System Design content using Bleve, a pure Go search library. Search is section-aware -- results link directly to the relevant section, not just the document.
+BLOGO provides full-text search across all loaded repository content using Bleve, a pure Go search library. Search is section-aware -- results link directly to the relevant section, not just the document.
 
 ## Search Engine
 

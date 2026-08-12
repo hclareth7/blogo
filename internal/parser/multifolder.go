@@ -48,6 +48,43 @@ func (p *Parser) ParseMultiFolder(repoDir, repoSlug string) (*Document, error) {
 	slugs := newSlugRegistry()
 	imgBase := fmt.Sprintf("/static/content/%s", repoSlug)
 
+	rootReadme := findReadme(repoDir)
+	if rootReadme != "" {
+		source, err := os.ReadFile(rootReadme)
+		if err == nil {
+			reader := text.NewReader(source)
+			tree := p.md.Parser().Parse(reader)
+
+			title := "Introduction"
+			node := tree.FirstChild()
+			if h, ok := node.(*ast.Heading); ok && h.Level == 1 {
+				title = extractHeadingText(h, source)
+				node = node.NextSibling()
+			}
+
+			rootSlug := slugs.Unique(Slugify(title))
+			section := &Section{
+				ID:    rootSlug,
+				Title: title,
+				Level: 1,
+				Order: -1,
+			}
+
+			var contentNodes []ast.Node
+			for node != nil {
+				contentNodes = append(contentNodes, node)
+				node = node.NextSibling()
+			}
+
+			section.Content = PostProcess(p.renderNodes(contentNodes, source))
+			section.RawText = p.extractText(contentNodes, source)
+			section.WordCount = countWords(section.RawText)
+
+			doc.Title = title
+			doc.Sections = append(doc.Sections, section)
+		}
+	}
+
 	for i, folder := range folders {
 		source, err := os.ReadFile(folder.path)
 		if err != nil {
@@ -171,6 +208,11 @@ func extractFolderNum(name string) int {
 }
 
 func rewriteImagePaths(source []byte, basePath string) []byte {
-	re := regexp.MustCompile(`(\!\[[^\]]*\]\()(\./)?images/`)
-	return re.ReplaceAll(source, []byte("${1}"+basePath+"/images/"))
+	mdRe := regexp.MustCompile(`(\!\[[^\]]*\]\()(\./)?images/`)
+	source = mdRe.ReplaceAll(source, []byte("${1}"+basePath+"/images/"))
+
+	htmlRe := regexp.MustCompile(`(src=["'])(\./)?images/`)
+	source = htmlRe.ReplaceAll(source, []byte("${1}"+basePath+"/images/"))
+
+	return source
 }

@@ -240,6 +240,16 @@ Release
 - Searchable repo selector in sidebar
 - Per-repo URL routing (`/{repo-slug}/{section}`)
 
+### Phase 1.2.1
+
+- Chapter ordering by numeric prefix for `multi-folder` repos
+- Root README.md support (shown as first sidebar item)
+- HTML `<img>` tag image path rewriting
+- Dynamic footer copyright per repo author
+- Sidebar nav truncation with tooltips for long titles
+- Repo selector arrow icon sizing
+- Standard repo templates documentation (`specs/repo-standards.md`)
+
 ### Phase 2
 
 - Search engine
@@ -290,7 +300,7 @@ EOF
 go run ./cmd/blogo
 ```
 
-### With environment variables (single repo)
+### With environment variables (legacy, single repo)
 
 ```bash
 git clone https://github.com/hclareth7/blogo.git

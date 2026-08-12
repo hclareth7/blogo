@@ -82,15 +82,19 @@ func (f *Fetcher) FetchMultiFolder(ctx context.Context, repoURL, branch, content
 		return fmt.Errorf("parsing tree: %w", err)
 	}
 
+	rootMDPattern := regexp.MustCompile(`(?i)^readme\.md$`)
 	mdPattern := regexp.MustCompile(`(?i)^[^/]+/readme\.md$`)
 	imgPattern := regexp.MustCompile(`(?i)^[^/]+/images/.+$`)
 
+	var rootMD string
 	var mdFiles []string
 	var imgFiles []string
 
 	for _, entry := range tree.Tree {
 		if entry.Type == "blob" {
-			if mdPattern.MatchString(entry.Path) {
+			if rootMDPattern.MatchString(entry.Path) {
+				rootMD = entry.Path
+			} else if mdPattern.MatchString(entry.Path) {
 				mdFiles = append(mdFiles, entry.Path)
 			} else if imgPattern.MatchString(entry.Path) {
 				imgFiles = append(imgFiles, entry.Path)
@@ -103,8 +107,25 @@ func (f *Fetcher) FetchMultiFolder(ctx context.Context, repoURL, branch, content
 	})
 
 	repoDir := filepath.Join(contentDir, slug)
+	if err := os.RemoveAll(repoDir); err != nil {
+		return fmt.Errorf("cleaning repo dir: %w", err)
+	}
 	if err := os.MkdirAll(repoDir, 0o755); err != nil {
 		return fmt.Errorf("creating repo dir: %w", err)
+	}
+
+	if rootMD != "" {
+		rawURL := githubRawURL(repoURL, branch, rootMD)
+		data, err := f.httpGet(ctx, rawURL)
+		if err != nil {
+			f.logger.Warn("skipping root README", "error", err)
+		} else {
+			dest := filepath.Join(repoDir, "README.md")
+			if err := atomicWrite(dest, data); err != nil {
+				return err
+			}
+			f.logger.Debug("fetched root README")
+		}
 	}
 
 	for _, mdPath := range mdFiles {
@@ -205,8 +226,6 @@ func githubRawURL(repoURL, branch, path string) string {
 }
 
 func slugifyFolder(name string) string {
-	numPrefix := regexp.MustCompile(`^\d+[\.\-\s]+`)
-	name = numPrefix.ReplaceAllString(name, "")
 	name = strings.ToLower(name)
 	name = strings.ReplaceAll(name, " ", "-")
 	name = regexp.MustCompile(`[^a-z0-9-]`).ReplaceAllString(name, "")
