@@ -4,7 +4,7 @@
 
 | Field       | Value              |
 |-------------|--------------------|
-| Version     | 1.0                |
+| Version     | 2.0                |
 | Status      | Draft              |
 | Author      | Hernando Clareth   |
 | Created     | 2026-08-11         |
@@ -19,11 +19,11 @@ BLOGO generates all navigation structures from the Markdown heading hierarchy. T
 
 The source document uses Markdown headings to structure content:
 
-| Markdown | Level | Navigation Role        | URL Pattern               |
-|----------|-------|------------------------|---------------------------|
-| `# H1`   | 1     | Top-level section      | `/{slug}`                 |
-| `## H2`  | 2     | Subsection             | `/{parent-slug}/{slug}`   |
-| `### H3` | 3     | Sub-subsection         | `/{parent-slug}/{slug}#anchor` |
+| Markdown | Level | Navigation Role        | URL Pattern (multi-repo)                  | URL Pattern (single repo)   |
+|----------|-------|------------------------|-------------------------------------------|-----------------------------|
+| `# H1`   | 1     | Top-level section      | `/{repo-slug}/{slug}`                     | `/{slug}`                   |
+| `## H2`  | 2     | Subsection             | `/{repo-slug}/{parent-slug}/{slug}`       | `/{parent-slug}/{slug}`     |
+| `### H3` | 3     | Sub-subsection         | `/{repo-slug}/{parent-slug}/{slug}#anchor`| `/{parent-slug}/{slug}#anchor` |
 
 Headings below H3 are rendered inline but do not generate navigation entries.
 
@@ -66,6 +66,15 @@ Sidebar
 └── Section C (H1)
 ```
 
+### Multi-Repo Navigation (Phase 1.2)
+
+Each repo has its own independent navigation tree. The sidebar displays the navigation tree of the currently active repo.
+
+- The sidebar header shows the current repo name and author with a searchable dropdown selector (see `specs/ui.md`)
+- Switching repos via the selector loads the new repo's navigation tree and navigates to its first section
+- Each repo's `NavTree` is built independently during startup and stored in `RepoState`
+- Previous/next links do not cross repo boundaries
+
 ### Behavior
 
 - The current section is highlighted in the sidebar
@@ -73,6 +82,7 @@ Sidebar
 - On mobile: sidebar is hidden by default, toggled via hamburger menu (Alpine.js)
 - On desktop: sidebar is always visible in a fixed left column
 - Sidebar scroll position is preserved during navigation
+- Switching repos resets scroll position to the top
 
 ### Data Model
 
@@ -118,11 +128,11 @@ On "TCP" page:
 
 Every section and subsection has a permanent URL.
 
-| Content Level | URL Example                        |
-|---------------|------------------------------------|
-| H1 Section    | `/load-balancing`                  |
-| H2 Subsection | `/load-balancing/algorithms`       |
-| H3 Anchor     | `/load-balancing/algorithms#round-robin` |
+| Content Level | URL Example (multi-repo)                            | URL Example (single repo)              |
+|---------------|------------------------------------------------------|----------------------------------------|
+| H1 Section    | `/system-design/load-balancing`                      | `/load-balancing`                      |
+| H2 Subsection | `/system-design/load-balancing/algorithms`            | `/load-balancing/algorithms`           |
+| H3 Anchor     | `/system-design/load-balancing/algorithms#round-robin`| `/load-balancing/algorithms#round-robin`|
 
 ### Requirements
 
@@ -153,6 +163,22 @@ Every section and subsection has a permanent URL.
 Keyboard shortcuts are active only when no input element is focused.
 
 ## URL Structure
+
+### Multi-repo mode (blogo.yaml present)
+
+```
+/                                              → Home (first repo, first section)
+/{repo-slug}                                   → Repo home (first section)
+/{repo-slug}/{section-slug}                    → Top-level section (H1)
+/{repo-slug}/{section-slug}/{subsection-slug}  → Subsection (H2)
+/search?q={query}                              → Search results page
+/static/content/{repo-slug}/...                → Repo-specific static assets (images)
+/static/*                                      → Global static assets (CSS, JS)
+/healthz                                       → Liveness probe
+/readyz                                        → Readiness probe
+```
+
+### Single-repo mode (legacy, env vars only)
 
 ```
 /                                    → Home (overview / first section)

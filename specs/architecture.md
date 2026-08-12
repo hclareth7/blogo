@@ -4,7 +4,7 @@
 
 | Field       | Value              |
 |-------------|--------------------|
-| Version     | 1.0                |
+| Version     | 2.0                |
 | Status      | Draft              |
 | Author      | Hernando Clareth   |
 | Created     | 2026-08-11         |
@@ -13,33 +13,44 @@
 
 ## Overview
 
-BLOGO is a server-side rendered Go application that parses a Markdown source, builds an in-memory document index, and serves it as navigable HTML pages with full-text search.
+BLOGO is a server-side rendered Go application that parses Markdown sources from multiple Git repositories, builds per-repo in-memory document indexes, and serves them as navigable HTML pages with full-text search.
 
 ```
-GitHub Repository (Markdown Source)
+blogo.yaml (repo list)
        │
        ▼
-  Fetch Job (HTTP pull)
+  Config Loader
        │
        ▼
-  content/README.md (local copy)
-       │
-       ▼
-  Markdown Parser (Goldmark)
-       │
-       ▼
-  Document Index (in-memory)
-       │
-       ├── Navigation Tree
-       ├── Search Index (Bleve)
-       ├── SEO Route Map
-       └── Rendered HTML Fragments
+  ┌────────────────────────────────────┐
+  │  For each repo in config:          │
+  │                                    │
+  │  GitHub Repository (Markdown)      │
+  │         │                          │
+  │         ▼                          │
+  │    Fetch Job (per type)            │
+  │    ├── single-md: HTTP GET raw     │
+  │    └── multi-folder: GitHub API    │
+  │         │                          │
+  │         ▼                          │
+  │    content/{repo-slug}/            │
+  │         │                          │
+  │         ▼                          │
+  │    Markdown Parser (Goldmark)      │
+  │         │                          │
+  │         ▼                          │
+  │    RepoState (in-memory)           │
+  │    ├── Document Index              │
+  │    ├── Navigation Tree             │
+  │    ├── Search Index (Bleve)        │
+  │    └── Rendered HTML Fragments     │
+  └────────────────────────────────────┘
        │
        ▼
   HTTP Server (Chi + Go Templates + HTMX)
        │
        ▼
-  Browser
+  Browser (repo selector + per-repo nav)
 ```
 
 ## Technology Stack
@@ -63,10 +74,10 @@ GitHub Repository (Markdown Source)
 
 Application entrypoint. Responsibilities:
 
-- Load configuration from environment variables
-- Execute content fetch job (if enabled)
-- Initialize Markdown parser and build document index
-- Initialize search index
+- Load configuration from `blogo.yaml` (or fall back to env vars)
+- For each configured repo: execute content fetch job, parse content, build index
+- Store per-repo state in `Server.repos` map
+- Initialize search index (per repo)
 - Configure HTTP server with middleware and routes
 - Start server with graceful shutdown on SIGTERM
 
@@ -84,6 +95,8 @@ Markdown parsing pipeline using Goldmark.
 **Key types:**
 ```
 Document
+├── Title    string
+├── RepoSlug string             (URL-safe identifier for the repo)
 ├── Sections []Section
 │   ├── ID        string    (URL slug)
 │   ├── Title     string    (heading text)
@@ -92,6 +105,10 @@ Document
 │   ├── Children  []Section (subsections)
 │   └── Order     int       (position in document)
 ```
+
+**Parser methods:**
+- `Parse(source []byte) (*Document, error)` — single-md repos (existing)
+- `ParseMultiFolder(repoDir string) (*Document, error)` — multi-folder repos (Phase 1.2)
 
 **Goldmark extensions to configure:**
 - `extension.Table`
@@ -142,41 +159,90 @@ HTTP server setup.
 - Chi router configuration
 - Middleware stack (logging, recovery, request ID, compression, cache headers)
 - Route registration (pages, search API, static assets, health)
+- Multi-repo state management (`repos` map, `repoList` for selector)
+- Repo-scoped route resolution (`/{repo-slug}/{section}`)
 - Graceful shutdown with configurable drain timeout
+
+**Multi-repo state:**
+```
+Server
+├── repos    map[string]*RepoState  (keyed by repo slug)
+├── repoList []*RepoMeta            (ordered list for selector UI)
+├── ...existing fields
+
+RepoState
+├── Doc      *parser.Document
+├── Index    *parser.Index
+├── NavTree  *navigation.NavTree
+├── NavBld   *navigation.Builder
+
+RepoMeta
+├── Name   string
+├── Slug   string
+├── Author string
+├── Type   string
+```
+
+### internal/config/ (Phase 1.2)
+
+Configuration loading from `blogo.yaml`.
+
+**Responsibilities:**
+- Load and validate `blogo.yaml` config file
+- Fall back to environment variables when no config file is present
+- Parse repo list with type, branch, and author fields
+- Config resolution order: `BLOGO_CONFIG` env var → `./blogo.yaml` → env-var fallback
 
 ### internal/content/
 
 Content acquisition and management.
 
 **Responsibilities:**
-- Fetch job: download README.md from GitHub via HTTP
-- Store content in `content/` directory
+- Fetch job per repo type:
+  - `single-md`: download raw README.md via HTTP (existing)
+  - `multi-folder`: discover folder tree via GitHub API, fetch each markdown file and images
+- Store content in `content/{repo-slug}/` directory
 - Detect content changes (checksum comparison)
+- Resolve relative image paths for `multi-folder` repos
 - Trigger re-parse and re-index on content update
 - Future: webhook endpoint to receive push notifications
 
 ## Route Design
 
-| Method | Path                    | Handler          | Description                      |
-|--------|-------------------------|------------------|----------------------------------|
-| GET    | /                       | Public           | Home / document overview         |
-| GET    | /{section}              | Public           | Top-level section page           |
-| GET    | /{section}/{subsection} | Public           | Subsection page                  |
-| GET    | /search                 | Search           | Search results page (HTMX)      |
-| GET    | /api/v1/search          | Search API       | JSON search endpoint             |
-| GET    | /static/*               | Static           | CSS, JS, images                  |
-| GET    | /healthz                | Health           | Liveness probe                   |
-| GET    | /readyz                 | Health           | Readiness probe                  |
+| Method | Path                                   | Handler          | Description                         |
+|--------|----------------------------------------|------------------|-------------------------------------|
+| GET    | /                                      | Public           | Home (first repo, first section)    |
+| GET    | /{repo-slug}                           | Public           | Repo home (first section)           |
+| GET    | /{repo-slug}/{section}                 | Public           | Top-level section page              |
+| GET    | /{repo-slug}/{section}/{subsection}    | Public           | Subsection page                     |
+| GET    | /search                                | Search           | Search results page (HTMX)         |
+| GET    | /api/v1/search                         | Search API       | JSON search endpoint                |
+| GET    | /static/*                              | Static           | Global static assets (CSS, JS)      |
+| GET    | /static/content/{repo-slug}/*          | Static           | Repo-specific images                |
+| GET    | /healthz                               | Health           | Liveness probe                      |
+| GET    | /readyz                                | Health           | Readiness probe                     |
+
+When only one repo is configured (or in env-var fallback mode), routes without `{repo-slug}` prefix continue to work for backward compatibility.
 
 ## Configuration
 
-All configuration via environment variables following 12-factor principles.
+### Config file: `blogo.yaml` (Phase 1.2)
+
+Primary configuration via `blogo.yaml` for multi-repo support. See `specs/multi-repo.md` for full format.
+
+**Resolution order:**
+1. `BLOGO_CONFIG` env var (path to config file)
+2. `./blogo.yaml` in working directory
+3. Env-var fallback (legacy single-repo mode)
+
+### Environment variables (legacy / server-level)
 
 | Variable              | Default                  | Description                          |
 |-----------------------|--------------------------|--------------------------------------|
+| BLOGO_CONFIG          | (none)                   | Path to config file                  |
 | BLOGO_PORT            | 8080                     | HTTP server port                     |
-| BLOGO_CONTENT_URL     | (GitHub raw URL)         | URL to fetch Markdown source         |
-| BLOGO_CONTENT_DIR     | ./content                | Local directory for content storage  |
+| BLOGO_CONTENT_URL     | (GitHub raw URL)         | URL to fetch Markdown source (legacy)|
+| BLOGO_CONTENT_DIR     | ./content                | Local content directory              |
 | BLOGO_FETCH_ON_START  | true                     | Fetch content on application start   |
 | BLOGO_FETCH_INTERVAL  | 0 (disabled)             | Periodic fetch interval (e.g., 1h)  |
 | BLOGO_LOG_LEVEL       | info                     | Log level (debug, info, warn, error) |

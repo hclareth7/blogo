@@ -115,11 +115,36 @@ Components:
 
 ## Sidebar
 
+### Repo Selector (Phase 1.2)
+
+The sidebar header includes a searchable autocomplete dropdown to switch between loaded repos:
+
+```
+┌─────────────────────┐
+│ 🔽 System Design    │  ← click to open selector
+│ by Karan Pratap S.  │
+├─────────────────────┤
+│ 🔍 Search repos...  │  ← autocomplete input (Alpine.js)
+│                     │
+│ ● System Design     │  ← active repo (highlighted)
+│   System Design N.  │
+│   [future repos]    │
+└─────────────────────┘
+```
+
+**Behavior:**
+- Clicking the repo name/chevron opens a dropdown with search input
+- Typing filters the repo list (client-side, Alpine.js `x-model` + `x-show`)
+- Selecting a repo navigates to `/{repo-slug}` via HTMX (swaps content + sidebar nav OOB)
+- Current repo name + author displayed in the sidebar header
+- Dropdown closes on selection, click outside, or Escape key
+- With a single repo configured, the selector is hidden (static header, current behavior)
+
 ### Structure
 
 ```
 ┌─────────────────────┐
-│ System Design        │
+│ 🔽 System Design    │  ← repo selector (when multiple repos)
 │ by Karan Pratap Singh│
 │                      │
 │ ● Introduction    ·  │  ← active: blue bg + dot indicator
