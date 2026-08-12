@@ -4,42 +4,42 @@
 <!-- OOB swap: sidebar header -->
 <div id="sidebar-header" hx-swap-oob="innerHTML">
     {{if .IsMultiRepo}}
-    <div class="p-3 border-b border-slate-200 dark:border-[#141c2e]"
+    <div class="p-4 border-b border-slate-200 dark:border-[#141c2e]"
          x-data="{ open: false, search: '' }"
          @click.outside="open = false"
          @keydown.escape.window="open = false">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-2 px-1">Current source</p>
+        <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-3 px-1">Current source</p>
 
         <!-- Closed selector -->
         <button @click="open = !open"
                 class="w-full flex items-center justify-between rounded-2xl border border-blue-400/50 dark:border-blue-500/60 bg-white dark:bg-[#0B1325]/90 px-3 py-2.5 shadow-[0_0_15px_rgba(59,130,246,0.12)] dark:shadow-[0_0_20px_rgba(37,99,235,0.18)] backdrop-blur transition-colors">
             <div class="flex items-center gap-2.5 min-w-0 flex-1">
                 {{if .AvatarURL}}
-                <img src="{{.AvatarURL}}" alt="" class="w-10 h-10 rounded-xl flex-shrink-0 object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                <span class="w-10 h-10 rounded-xl bg-blue-600/20 items-center justify-center text-blue-500 text-base font-bold flex-shrink-0 hidden">{{initial .DocTitle}}</span>
+                <img src="{{.AvatarURL}}" alt="" class="w-[30px] h-[30px] rounded-full flex-shrink-0 object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <span class="w-[30px] h-[30px] rounded-full bg-blue-600/20 items-center justify-center text-blue-500 text-sm font-bold flex-shrink-0 hidden">{{initial .DocTitle}}</span>
                 {{else}}
-                <span class="w-10 h-10 rounded-xl bg-blue-600/20 flex items-center justify-center text-blue-500 text-base font-bold flex-shrink-0">{{initial .DocTitle}}</span>
+                <span class="w-[30px] h-[30px] rounded-full bg-blue-600/20 flex items-center justify-center text-blue-500 text-sm font-bold flex-shrink-0">{{initial .DocTitle}}</span>
                 {{end}}
                 <div class="text-left min-w-0 flex-1">
                     <span class="block text-sm font-semibold text-slate-800 dark:text-white truncate">{{.DocTitle}}</span>
                     <span class="block text-[11px] text-slate-500 dark:text-slate-400 truncate">by {{.Author}}</span>
                 </div>
             </div>
-            <div class="flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 ml-1.5 flex-shrink-0">
-                <svg class="w-4 h-4 text-slate-500 dark:text-white transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            <div class="flex items-center justify-center w-7 h-7 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 ml-1.5 flex-shrink-0">
+                <svg class="w-3.5 h-3.5 text-slate-500 dark:text-white transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
             </div>
         </button>
 
         <!-- Dropdown panel -->
         <div x-show="open" x-transition
-             class="absolute left-1.5 right-1.5 mt-2 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B1325]/90 p-3 backdrop-blur shadow-xl z-50">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-3 px-1">Switch source repository</p>
-            <div class="mb-2 px-1">
+             class="absolute left-4 right-4 mt-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111827] p-3 backdrop-blur shadow-xl z-50">
+            <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-4 px-1">Switch source repository</p>
+            <div class="mb-3 px-1">
                 <input type="text" x-model="search" placeholder="Search repos..."
                        class="w-full px-3 py-1.5 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                        @click.stop>
             </div>
-            <div class="max-h-64 overflow-y-auto space-y-1">
+            <div class="max-h-64 overflow-y-auto space-y-1.5">
                 {{range .RepoList}}
                 <a href="/{{.Slug}}"
                    hx-get="/{{.Slug}}" hx-target="#main-content" hx-push-url="true" hx-swap="innerHTML scroll:window:top"
@@ -49,10 +49,10 @@
                           {{if .Active}}bg-blue-50 dark:bg-gradient-to-r dark:from-blue-900/50 dark:to-blue-800/20 hover:bg-blue-100 dark:hover:bg-blue-900/60{{else}}hover:bg-slate-100 dark:hover:bg-white/5{{end}}">
                     <div class="flex items-center gap-2.5 min-w-0 flex-1">
                         {{if .AvatarURL}}
-                        <img src="{{.AvatarURL}}" alt="" class="w-10 h-10 rounded-xl flex-shrink-0 object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                        <span class="w-10 h-10 rounded-xl {{if .Active}}bg-blue-600/20{{else}}bg-slate-200 dark:bg-slate-700{{end}} items-center justify-center text-base font-bold flex-shrink-0 hidden {{if .Active}}text-blue-500{{else}}text-slate-500 dark:text-slate-300{{end}}">{{initial .Name}}</span>
+                        <img src="{{.AvatarURL}}" alt="" class="w-[30px] h-[30px] rounded-full flex-shrink-0 object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <span class="w-[30px] h-[30px] rounded-full {{if .Active}}bg-blue-600/20{{else}}bg-slate-200 dark:bg-slate-700{{end}} items-center justify-center text-sm font-bold flex-shrink-0 hidden {{if .Active}}text-blue-500{{else}}text-slate-500 dark:text-slate-300{{end}}">{{initial .Name}}</span>
                         {{else}}
-                        <span class="w-10 h-10 rounded-xl {{if .Active}}bg-blue-600/20{{else}}bg-slate-200 dark:bg-slate-700{{end}} flex items-center justify-center text-base font-bold flex-shrink-0 {{if .Active}}text-blue-500{{else}}text-slate-500 dark:text-slate-300{{end}}">{{initial .Name}}</span>
+                        <span class="w-[30px] h-[30px] rounded-full {{if .Active}}bg-blue-600/20{{else}}bg-slate-200 dark:bg-slate-700{{end}} flex items-center justify-center text-sm font-bold flex-shrink-0 {{if .Active}}text-blue-500{{else}}text-slate-500 dark:text-slate-300{{end}}">{{initial .Name}}</span>
                         {{end}}
                         <div class="min-w-0 flex-1">
                             <span class="block truncate font-semibold {{if .Active}}text-blue-700 dark:text-white{{else}}text-slate-800 dark:text-white{{end}}">{{.Name}}</span>
@@ -78,7 +78,7 @@
 </div>
 
 <!-- OOB swap: sidebar nav -->
-<nav id="sidebar-nav" hx-swap-oob="innerHTML" class="flex-1 overflow-y-auto p-3 space-y-0.5" aria-label="Documentation navigation">
+<nav id="sidebar-nav" hx-swap-oob="innerHTML" class="flex-1 overflow-y-auto p-3 space-y-1" aria-label="Documentation navigation">
     {{if .NavTree}}
     {{range .NavTree.Ungrouped}}
     <a href="{{.URL}}"
