@@ -1,7 +1,8 @@
 # BLOGO
 
-A modern, interactive System Design documentation platform built with Go.
-Transforms the System Design knowledge base by Karan Pratap Singh into a searchable, navigable learning experience.
+A multi-repo documentation platform built with Go.
+Transforms Markdown repositories into searchable, navigable learning experiences.
+Supports multiple repo types: `single-md` (one big README) and `multi-folder` (folder-per-topic).
 
 ## Development Philosophy
 
@@ -47,6 +48,7 @@ blogo/
 ├── specs/               # Feature specifications (SDD)
 ├── deploy/
 │   └── k8s/             # OpenShift/K8s manifests (Kustomize)
+├── blogo.yaml           # Multi-repo configuration
 ├── Dockerfile           # Multi-stage scratch-based image
 └── .dockerignore        # Build context exclusions
 ```

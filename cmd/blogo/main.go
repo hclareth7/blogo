@@ -24,31 +24,58 @@ func main() {
 
 	logger := setupLogger(cfg.LogLevel, cfg.LogFormat)
 
-	fetcher := content.NewFetcher(cfg.ContentURL, cfg.ContentDir, logger)
-	if cfg.FetchOnStart {
-		if _, err := fetcher.Fetch(context.Background()); err != nil {
-			logger.Error("failed to fetch content", "error", err)
+	fetcher := content.NewFetcher(logger)
+	p := parser.NewParser(logger)
+
+	repos := make(map[string]*server.RepoState)
+	var repoOrder []string
+
+	for _, repoCfg := range cfg.Repos {
+		slug := content.RepoSlug(repoCfg.Name)
+		logger.Info("loading repo", "name", repoCfg.Name, "slug", slug, "type", repoCfg.Type)
+
+		if cfg.FetchOnStart {
+			if err := fetchRepo(context.Background(), fetcher, repoCfg, cfg.ContentDir, slug); err != nil {
+				logger.Error("failed to fetch content", "repo", repoCfg.Name, "error", err)
+				os.Exit(1)
+			}
+		}
+
+		doc, err := parseRepo(p, repoCfg, cfg.ContentDir, slug, fetcher)
+		if err != nil {
+			logger.Error("failed to parse content", "repo", repoCfg.Name, "error", err)
 			os.Exit(1)
 		}
+
+		doc.RepoSlug = slug
+		doc.Author = repoCfg.Author
+
+		index := parser.NewIndex(doc)
+
+		var navBuilder *navigation.Builder
+		if slug == "system-design" {
+			navBuilder = navigation.NewBuilderForRepo(logger, slug, true)
+		} else {
+			navBuilder = navigation.NewBuilderForRepo(logger, slug, false)
+		}
+		navTree := navBuilder.BuildTree(doc.Sections)
+
+		repos[slug] = &server.RepoState{
+			Doc:     doc,
+			Index:   index,
+			NavTree: navTree,
+			NavBld:  navBuilder,
+			Meta: renderer.RepoMeta{
+				Name:   repoCfg.Name,
+				Slug:   slug,
+				Author: repoCfg.Author,
+				Type:   repoCfg.Type,
+			},
+		}
+		repoOrder = append(repoOrder, slug)
+
+		logger.Info("repo loaded", "name", repoCfg.Name, "sections", len(doc.Sections))
 	}
-
-	source, err := fetcher.ReadContent()
-	if err != nil {
-		logger.Error("failed to read content", "error", err)
-		os.Exit(1)
-	}
-
-	p := parser.NewParser(logger)
-	doc, err := p.Parse(source)
-	if err != nil {
-		logger.Error("failed to parse content", "error", err)
-		os.Exit(1)
-	}
-
-	index := parser.NewIndex(doc)
-
-	navBuilder := navigation.NewBuilder(logger)
-	navTree := navBuilder.BuildTree(doc.Sections)
 
 	rend, err := renderer.New(templates.FS, logger)
 	if err != nil {
@@ -56,10 +83,33 @@ func main() {
 		os.Exit(1)
 	}
 
-	srv := server.New(cfg, doc, index, navTree, navBuilder, rend, static.FS, logger)
+	srv := server.New(cfg, repos, repoOrder, rend, static.FS, logger)
 	if err := srv.Start(context.Background()); err != nil {
 		logger.Error("server error", "error", err)
 		os.Exit(1)
+	}
+}
+
+func fetchRepo(ctx context.Context, fetcher *content.Fetcher, repoCfg config.RepoConfig, contentDir, slug string) error {
+	switch repoCfg.Type {
+	case "multi-folder":
+		return fetcher.FetchMultiFolder(ctx, repoCfg.URL, repoCfg.Branch, contentDir, slug)
+	default:
+		return fetcher.FetchSingleMD(ctx, repoCfg.URL, repoCfg.Branch, contentDir, slug)
+	}
+}
+
+func parseRepo(p *parser.Parser, repoCfg config.RepoConfig, contentDir, slug string, fetcher *content.Fetcher) (*parser.Document, error) {
+	switch repoCfg.Type {
+	case "multi-folder":
+		repoDir := contentDir + "/" + slug
+		return p.ParseMultiFolder(repoDir, slug)
+	default:
+		source, err := fetcher.ReadSingleMD(contentDir, slug)
+		if err != nil {
+			return nil, err
+		}
+		return p.Parse(source)
 	}
 }
 

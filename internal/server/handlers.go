@@ -9,41 +9,108 @@ import (
 )
 
 func (s *Server) handleHome(w http.ResponseWriter, r *http.Request) {
-	sections := s.index.Sections()
+	rs := s.defaultRepo()
+	if rs == nil {
+		http.Error(w, "no content available", http.StatusInternalServerError)
+		return
+	}
+
+	sections := rs.Index.Sections()
 	if len(sections) == 0 {
 		http.Error(w, "no content available", http.StatusInternalServerError)
 		return
 	}
 
 	first := sections[0]
-	data := s.buildPageData(first, "", r.URL.Path)
+	data := s.buildPageData(rs, first, "", r.URL.Path)
 	s.render(w, r, "page.html", data)
 }
 
-func (s *Server) handleSection(w http.ResponseWriter, r *http.Request) {
-	slug := chi.URLParam(r, "section")
-	section, ok := s.index.Lookup(slug)
+// handleSlug1 resolves /{slug1} — could be a repo slug or a section in the default repo.
+func (s *Server) handleSlug1(w http.ResponseWriter, r *http.Request) {
+	slug1 := chi.URLParam(r, "slug1")
+
+	// Check if it's a repo slug
+	if rs, ok := s.repos[slug1]; ok {
+		sections := rs.Index.Sections()
+		if len(sections) == 0 {
+			s.render404(w, r)
+			return
+		}
+		first := sections[0]
+		data := s.buildPageData(rs, first, "", r.URL.Path)
+		s.render(w, r, "page.html", data)
+		return
+	}
+
+	// Fallback: section in default repo
+	rs := s.defaultRepo()
+	if rs == nil {
+		s.render404(w, r)
+		return
+	}
+	section, ok := rs.Index.Lookup(slug1)
+	if !ok {
+		s.render404(w, r)
+		return
+	}
+	data := s.buildPageData(rs, section, "", r.URL.Path)
+	s.render(w, r, "page.html", data)
+}
+
+// handleSlug2 resolves /{slug1}/{slug2} — repo/section or section/subsection in default repo.
+func (s *Server) handleSlug2(w http.ResponseWriter, r *http.Request) {
+	slug1 := chi.URLParam(r, "slug1")
+	slug2 := chi.URLParam(r, "slug2")
+
+	// Check if slug1 is a repo
+	if rs, ok := s.repos[slug1]; ok {
+		section, ok := rs.Index.Lookup(slug2)
+		if !ok {
+			s.render404(w, r)
+			return
+		}
+		data := s.buildPageData(rs, section, "", r.URL.Path)
+		s.render(w, r, "page.html", data)
+		return
+	}
+
+	// Fallback: subsection in default repo
+	rs := s.defaultRepo()
+	if rs == nil {
+		s.render404(w, r)
+		return
+	}
+	route := slug1 + "/" + slug2
+	section, ok := rs.Index.Lookup(route)
+	if !ok {
+		s.render404(w, r)
+		return
+	}
+	data := s.buildPageData(rs, section, slug1, r.URL.Path)
+	s.render(w, r, "page.html", data)
+}
+
+// handleSlug3 resolves /{repo}/{section}/{subsection}.
+func (s *Server) handleSlug3(w http.ResponseWriter, r *http.Request) {
+	slug1 := chi.URLParam(r, "slug1")
+	slug2 := chi.URLParam(r, "slug2")
+	slug3 := chi.URLParam(r, "slug3")
+
+	rs, ok := s.repos[slug1]
 	if !ok {
 		s.render404(w, r)
 		return
 	}
 
-	data := s.buildPageData(section, "", r.URL.Path)
-	s.render(w, r, "page.html", data)
-}
-
-func (s *Server) handleSubsection(w http.ResponseWriter, r *http.Request) {
-	parentSlug := chi.URLParam(r, "section")
-	childSlug := chi.URLParam(r, "subsection")
-	route := parentSlug + "/" + childSlug
-
-	section, ok := s.index.Lookup(route)
+	route := slug2 + "/" + slug3
+	section, ok := rs.Index.Lookup(route)
 	if !ok {
 		s.render404(w, r)
 		return
 	}
 
-	data := s.buildPageData(section, parentSlug, r.URL.Path)
+	data := s.buildPageData(rs, section, slug2, r.URL.Path)
 	s.render(w, r, "page.html", data)
 }
 
@@ -54,22 +121,27 @@ func (s *Server) handleHealthz(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleReadyz(w http.ResponseWriter, r *http.Request) {
-	if len(s.index.Sections()) == 0 {
-		w.Header().Set("Content-Type", "text/plain")
+	ready := false
+	for _, rs := range s.repos {
+		if len(rs.Index.Sections()) > 0 {
+			ready = true
+			break
+		}
+	}
+	w.Header().Set("Content-Type", "text/plain")
+	if !ready {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		w.Write([]byte("not ready"))
 		return
 	}
-	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("ready"))
 }
 
-func (s *Server) buildPageData(section *parser.Section, parentID, currentPath string) *renderer.PageData {
-	sections := s.index.Sections()
+func (s *Server) buildPageData(rs *RepoState, section *parser.Section, parentID, currentPath string) *renderer.PageData {
+	sections := rs.Index.Sections()
 
-	originalBase := "https://github.com/karanpratapsingh/system-design#"
-	originalURL := originalBase + section.ID
+	originalURL := buildOriginalURL(rs, section)
 
 	rawText := section.RawText
 	if rawText == "" && len(section.Children) > 0 {
@@ -86,16 +158,30 @@ func (s *Server) buildPageData(section *parser.Section, parentID, currentPath st
 	return &renderer.PageData{
 		Title:       section.Title,
 		Section:     section,
-		NavTree:     s.navTree,
-		Breadcrumbs: s.navBld.BuildBreadcrumbs(section.ID, parentID, sections),
-		PrevNext:    s.navBld.BuildPrevNext(sections, section.ID),
+		NavTree:     rs.NavTree,
+		Breadcrumbs: rs.NavBld.BuildBreadcrumbs(section.ID, parentID, sections),
+		PrevNext:    rs.NavBld.BuildPrevNext(sections, section.ID),
 		ReadingTime: readingTime(section.WordCount),
-		Author:      "Karan Pratap Singh",
+		Author:      rs.Meta.Author,
 		OriginalURL: originalURL,
 		MetaDesc:    metaDesc,
 		CurrentPath: currentPath,
-		DocTitle:    s.doc.Title,
+		DocTitle:    rs.Doc.Title,
+		RepoSlug:    rs.Meta.Slug,
+		RepoList:    s.repoList(rs.Meta.Slug),
+		IsMultiRepo: s.cfg.IsMultiRepo(),
 	}
+}
+
+func buildOriginalURL(rs *RepoState, section *parser.Section) string {
+	for _, repo := range []struct{ slug, base string }{
+		{"system-design", "https://github.com/karanpratapsingh/system-design#"},
+	} {
+		if rs.Meta.Slug == repo.slug {
+			return repo.base + section.ID
+		}
+	}
+	return ""
 }
 
 func (s *Server) render(w http.ResponseWriter, r *http.Request, name string, data *renderer.PageData) {
@@ -112,14 +198,23 @@ func (s *Server) render(w http.ResponseWriter, r *http.Request, name string, dat
 }
 
 func (s *Server) render404(w http.ResponseWriter, r *http.Request) {
+	rs := s.defaultRepo()
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusNotFound)
+
 	data := &renderer.PageData{
 		Title:       "Page Not Found",
-		NavTree:     s.navTree,
 		CurrentPath: r.URL.Path,
-		DocTitle:    s.doc.Title,
+		IsMultiRepo: s.cfg.IsMultiRepo(),
 	}
+
+	if rs != nil {
+		data.NavTree = rs.NavTree
+		data.DocTitle = rs.Doc.Title
+		data.RepoSlug = rs.Meta.Slug
+		data.RepoList = s.repoList(rs.Meta.Slug)
+	}
+
 	if err := s.renderer.RenderPage(w, "404.html", data); err != nil {
 		s.logger.Error("404 template render error", "error", err)
 		http.Error(w, "page not found", http.StatusNotFound)
